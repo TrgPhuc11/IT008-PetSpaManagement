@@ -1,0 +1,31 @@
+<Application x:Class="SpaThuCung.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Light" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Bảng màu Spa thú cưng -->
+            <SolidColorBrush x:Key="MauNen" Color="#FAF5EC" />
+            <SolidColorBrush x:Key="MauThe" Color="#FFFDF9" />
+            <SolidColorBrush x:Key="MauVien" Color="#D9CCB8" />
+            <SolidColorBrush x:Key="MauNhanDam" Color="#8F3C19" />
+            <SolidColorBrush x:Key="MauNhan" Color="#A9481F" />
+            <SolidColorBrush x:Key="MauChu" Color="#2B2520" />
+            <SolidColorBrush x:Key="MauChuPhu" Color="#6E6253" />
+            <SolidColorBrush x:Key="MauLoiNen" Color="#FBE3E0" />
+            <SolidColorBrush x:Key="MauLoiChu" Color="#A4262C" />
+            <SolidColorBrush x:Key="MauChon" Color="#F6E4D6" />
+            <SolidColorBrush x:Key="MauNutPhu" Color="#FFFBF4" />
+            <SolidColorBrush x:Key="MauVienBang" Color="#E7DCCB" />
+            <SolidColorBrush x:Key="MauOkNen" Color="#E6F0DA" />
+            <SolidColorBrush x:Key="MauOkChu" Color="#33561E" />
+            <SolidColorBrush x:Key="MauCanhBaoNen" Color="#FDF1CC" />
+            <SolidColorBrush x:Key="MauCanhBaoChu" Color="#6B4E00" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

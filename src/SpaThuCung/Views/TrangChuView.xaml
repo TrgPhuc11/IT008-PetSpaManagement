@@ -1,0 +1,12 @@
+<UserControl x:Class="SpaThuCung.Views.TrangChuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <TextBlock Text="{Binding LoiChao}" FontSize="26" FontWeight="SemiBold"
+                   Foreground="{StaticResource MauChu}" />
+        <TextBlock Text="{Binding NgayHomNay}" Margin="0,4,0,0" FontSize="14"
+                   Foreground="{StaticResource MauChuPhu}" />
+        <TextBlock Text="Các chức năng khác sẽ được bổ sung sau." Margin="0,24,0,0" FontSize="14"
+                   Foreground="{StaticResource MauChuPhu}" />
+    </StackPanel>
+</UserControl>

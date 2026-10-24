@@ -1,0 +1,257 @@
+<UserControl x:Class="SpaThuCung.Views.NhanVienView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Chữ trong ô của bảng; nhân viên đã nghỉ việc thì xám (đặt ở TextBlock để chắc chắn ăn màu) -->
+        <Style x:Key="ChuODuLieu" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DaNghiViec}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Nhãn của ô nhập trong form -->
+        <Style x:Key="NhanO" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,12,0,6" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Quản lý nhân viên" FontSize="24" FontWeight="SemiBold"
+                   Foreground="{StaticResource MauChu}" />
+        <TextBlock Grid.Row="1" Margin="0,4,0,16" FontSize="14" TextWrapping="Wrap"
+                   Foreground="{StaticResource MauChuPhu}"
+                   Text="Thông tin, vai trò hệ thống, tài khoản và trạng thái làm việc. Nhân viên đã nghỉ việc không đăng nhập được. Vị trí Lễ tân / Groomer được gán theo từng ngày ở Lịch làm việc." />
+
+        <!-- Thanh công cụ -->
+        <WrapPanel Grid.Row="2" Orientation="Horizontal">
+            <ui:TextBox Width="300" Margin="0,0,8,8"
+                        PlaceholderText="Tìm theo tên, SĐT hoặc tên đăng nhập"
+                        Text="{Binding TuKhoa, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <ui:Button Content="Thêm nhân viên" Height="36" Margin="0,0,8,8"
+                       Appearance="Primary"
+                       Background="{StaticResource MauNhan}"
+                       BorderBrush="{StaticResource MauNhan}"
+                       Foreground="White"
+                       MouseOverBackground="{StaticResource MauNhanDam}"
+                       MouseOverBorderBrush="{StaticResource MauNhanDam}"
+                       PressedBackground="{StaticResource MauNhanDam}"
+                       PressedForeground="White"
+                       Command="{Binding ThemCommand}" />
+
+            <ui:Button Content="Sửa" Height="36" Margin="0,0,8,8"
+                       Background="{StaticResource MauNutPhu}"
+                       BorderBrush="{StaticResource MauVien}"
+                       Foreground="{StaticResource MauChu}"
+                       MouseOverBackground="{StaticResource MauChon}"
+                       MouseOverBorderBrush="{StaticResource MauVien}"
+                       PressedBackground="{StaticResource MauChon}"
+                       PressedForeground="{StaticResource MauChu}"
+                       Command="{Binding SuaCommand}" />
+
+            <ui:Button Content="Đổi trạng thái" Height="36" Margin="0,0,8,8"
+                       Background="{StaticResource MauNutPhu}"
+                       BorderBrush="{StaticResource MauVien}"
+                       Foreground="{StaticResource MauChu}"
+                       MouseOverBackground="{StaticResource MauChon}"
+                       MouseOverBorderBrush="{StaticResource MauVien}"
+                       PressedBackground="{StaticResource MauChon}"
+                       PressedForeground="{StaticResource MauChu}"
+                       Command="{Binding DoiTrangThaiCommand}" />
+
+            <ui:Button Content="Đặt lại mật khẩu" Height="36" Margin="0,0,0,8"
+                       Background="{StaticResource MauNutPhu}"
+                       BorderBrush="{StaticResource MauVien}"
+                       Foreground="{StaticResource MauChu}"
+                       MouseOverBackground="{StaticResource MauChon}"
+                       MouseOverBorderBrush="{StaticResource MauVien}"
+                       PressedBackground="{StaticResource MauChon}"
+                       PressedForeground="{StaticResource MauChu}"
+                       Command="{Binding DatLaiMatKhauCommand}" />
+        </WrapPanel>
+
+        <!-- Hộp thông báo: màu đổi theo LoaiThongBao (mặc định là lỗi) -->
+        <Border Grid.Row="3" Margin="0,0,0,12" Padding="12,8" CornerRadius="4"
+                Visibility="{Binding CoThongBao, Converter={StaticResource BoolToVis}}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{StaticResource MauLoiNen}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding LoaiThongBao}" Value="ThanhCong">
+                            <Setter Property="Background" Value="{StaticResource MauOkNen}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding LoaiThongBao}" Value="CanhBao">
+                            <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ThongBao}" FontSize="13" TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource MauLoiChu}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LoaiThongBao}" Value="ThanhCong">
+                                <Setter Property="Foreground" Value="{StaticResource MauOkChu}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding LoaiThongBao}" Value="CanhBao">
+                                <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Border>
+
+        <!-- Bảng + form -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{StaticResource MauThe}"
+                    BorderBrush="{StaticResource MauVienBang}" BorderThickness="1" CornerRadius="8">
+                <DataGrid ItemsSource="{Binding DanhSach}"
+                          SelectedItem="{Binding NhanVienDuocChon, Mode=TwoWay}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{StaticResource MauVienBang}"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          RowHeight="40"
+                          Margin="4"
+                          Background="Transparent"
+                          BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Mã" Width="80"
+                                            Binding="{Binding MaHienThi, Mode=OneWay}"
+                                            ElementStyle="{StaticResource ChuODuLieu}" />
+                        <DataGridTextColumn Header="Họ tên" Width="*" MinWidth="140"
+                                            Binding="{Binding HoTen, Mode=OneWay}"
+                                            ElementStyle="{StaticResource ChuODuLieu}" />
+                        <DataGridTextColumn Header="SĐT" Width="120"
+                                            Binding="{Binding Sdt, Mode=OneWay}"
+                                            ElementStyle="{StaticResource ChuODuLieu}" />
+                        <DataGridTextColumn Header="Tên đăng nhập" Width="140"
+                                            Binding="{Binding TenDangNhap, Mode=OneWay}"
+                                            ElementStyle="{StaticResource ChuODuLieu}" />
+                        <DataGridTextColumn Header="Vai trò" Width="100"
+                                            Binding="{Binding VaiTro, Mode=OneWay}"
+                                            ElementStyle="{StaticResource ChuODuLieu}" />
+                        <DataGridTextColumn Header="Trạng thái" Width="120"
+                                            Binding="{Binding TrangThaiLamViec, Mode=OneWay}"
+                                            ElementStyle="{StaticResource ChuODuLieu}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Form thêm / sửa / đặt lại mật khẩu -->
+            <Border Grid.Column="1" Width="300" Margin="16,0,0,0" Padding="16" CornerRadius="8"
+                    Background="{StaticResource MauThe}"
+                    BorderBrush="{StaticResource MauVienBang}" BorderThickness="1"
+                    Visibility="{Binding DangMoForm, Converter={StaticResource BoolToVis}}">
+                <DockPanel LastChildFill="True">
+
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                                HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <ui:Button Content="Huỷ" Height="36" MinWidth="80" Margin="0,0,8,0"
+                                   Background="{StaticResource MauNutPhu}"
+                                   BorderBrush="{StaticResource MauVien}"
+                                   Foreground="{StaticResource MauChu}"
+                                   MouseOverBackground="{StaticResource MauChon}"
+                                   MouseOverBorderBrush="{StaticResource MauVien}"
+                                   PressedBackground="{StaticResource MauChon}"
+                                   PressedForeground="{StaticResource MauChu}"
+                                   Command="{Binding HuyCommand}" />
+                        <ui:Button Content="Lưu" Height="36" MinWidth="80"
+                                   Appearance="Primary"
+                                   Background="{StaticResource MauNhan}"
+                                   BorderBrush="{StaticResource MauNhan}"
+                                   Foreground="White"
+                                   MouseOverBackground="{StaticResource MauNhanDam}"
+                                   MouseOverBorderBrush="{StaticResource MauNhanDam}"
+                                   PressedBackground="{StaticResource MauNhanDam}"
+                                   PressedForeground="White"
+                                   Command="{Binding LuuCommand}" />
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="{Binding TieuDeForm}" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{StaticResource MauChu}" />
+
+                            <!-- Đặt lại mật khẩu: tên nhân viên -->
+                            <TextBlock Text="{Binding DongNhanVienDatLai}" Margin="0,12,0,0" FontSize="14"
+                                       TextWrapping="Wrap" Foreground="{StaticResource MauChu}"
+                                       Visibility="{Binding LaDatLai, Converter={StaticResource BoolToVis}}" />
+
+                            <!-- Thêm / sửa -->
+                            <StackPanel Visibility="{Binding LaThemHoacSua, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Họ tên *" Style="{StaticResource NhanO}" />
+                                <ui:TextBox MaxLength="100" Text="{Binding FormHoTen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Text="SĐT" Style="{StaticResource NhanO}" />
+                                <ui:TextBox MaxLength="15" Text="{Binding FormSdt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Text="Tên đăng nhập *" Style="{StaticResource NhanO}" />
+                                <ui:TextBox IsReadOnly="{Binding LaSua}" MaxLength="50"
+                                            Text="{Binding FormTenDangNhap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Text="Vai trò hệ thống" Style="{StaticResource NhanO}" />
+                                <ComboBox HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding ChoPhepDoiVaiTro}"
+                                          ItemsSource="{Binding DanhSachVaiTro}"
+                                          SelectedItem="{Binding FormVaiTro, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <!-- Thêm / đặt lại mật khẩu -->
+                            <StackPanel Visibility="{Binding CoOMatKhau, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding NhanMatKhau}" Style="{StaticResource NhanO}" />
+                                <ui:PasswordBox Password="{Binding FormMatKhau, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Text="Nhập lại mật khẩu *" Style="{StaticResource NhanO}" />
+                                <ui:PasswordBox Password="{Binding FormNhapLai, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <TextBlock Margin="0,12,0,0" FontSize="12" TextWrapping="Wrap"
+                                       Foreground="{StaticResource MauChuPhu}"
+                                       Text="Báo mật khẩu ban đầu cho nhân viên; nhân viên tự đổi sau khi đăng nhập."
+                                       Visibility="{Binding LaThem, Converter={StaticResource BoolToVis}}" />
+
+                            <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="4"
+                                    Background="{StaticResource MauLoiNen}"
+                                    Visibility="{Binding CoFormLoi, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding FormLoi}" FontSize="13" TextWrapping="Wrap"
+                                           Foreground="{StaticResource MauLoiChu}" />
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
