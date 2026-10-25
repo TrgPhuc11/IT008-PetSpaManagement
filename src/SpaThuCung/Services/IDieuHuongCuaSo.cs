@@ -5,4 +5,7 @@ public interface IDieuHuongCuaSo
 {
     void MoManHinhChinh();
     void VeDangNhap();
+
+    /// <summary>Mở hộp thoại Đổi mật khẩu (chặn cửa sổ chính cho tới khi đóng).</summary>
+    void MoDoiMatKhau();
 }
