@@ -17,6 +17,13 @@ public class DieuHuongCuaSo : IDieuHuongCuaSo
 
     public void VeDangNhap() => ChuyenSang<LoginWindow, MainWindow>();
 
+    public void MoDoiMatKhau()
+    {
+        var cuaSo = _sp.GetRequiredService<DoiMatKhauWindow>();
+        cuaSo.Owner = Application.Current.MainWindow;
+        cuaSo.ShowDialog();
+    }
+
     /// <summary>Mở cửa sổ mới trước rồi mới đóng cửa sổ cũ để app không tự thoát.</summary>
     private void ChuyenSang<TMoi, TCu>() where TMoi : Window where TCu : Window
     {

@@ -50,6 +50,37 @@ public class AuthService : IAuthService
         return KetQuaDangNhap.Ok(nv);
     }
 
+    public async Task<KetQua> DoiMatKhauAsync(string matKhauHienTai, string matKhauMoi)
+    {
+        var nguoiDung = _phien.NhanVienHienTai;
+        if (nguoiDung is null) return KetQua.Loi("Chưa đăng nhập.");
+
+        if (string.IsNullOrEmpty(matKhauHienTai)) return KetQua.Loi("Nhập mật khẩu hiện tại.");
+        if (string.IsNullOrEmpty(matKhauMoi) || matKhauMoi.Length < QuyTacNhanVien.MatKhauToiThieu)
+            return KetQua.Loi($"Mật khẩu mới cần ít nhất {QuyTacNhanVien.MatKhauToiThieu} ký tự.");
+        if (matKhauMoi == matKhauHienTai) return KetQua.Loi("Mật khẩu mới phải khác mật khẩu hiện tại.");
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var nv = await db.NhanVien.FirstOrDefaultAsync(x => x.MaNv == nguoiDung.MaNv);
+            if (nv is null) return KetQua.Loi("Không tìm thấy tài khoản.");
+
+            // Đối chiếu mật khẩu hiện tại với chuỗi băm trong CSDL.
+            if (!KiemTraMatKhau(matKhauHienTai, nv.MatKhau))
+                return KetQua.Loi("Mật khẩu hiện tại không đúng.");
+
+            nv.MatKhau = await Task.Run(() => BCryptNet.HashPassword(matKhauMoi));
+            await db.SaveChangesAsync();
+
+            return KetQua.Ok("Đã đổi mật khẩu. Lần đăng nhập sau dùng mật khẩu mới.");
+        }
+        catch (Exception)
+        {
+            return KetQua.Loi("Không kết nối được cơ sở dữ liệu.");
+        }
+    }
+
     public async Task<KetQua> DatLaiMatKhauAsync(int maNv, string matKhauMoi)
     {
         if (!_phien.LaQuanLy) return KetQua.Loi("Chỉ Quản lý được dùng chức năng này.");

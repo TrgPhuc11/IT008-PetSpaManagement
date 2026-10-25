@@ -91,6 +91,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void DoiMatKhau() => _dieuHuong.MoDoiMatKhau();
+
+    [RelayCommand]
     private void DangXuat()
     {
         Dispose();

@@ -90,8 +90,10 @@ public partial class App : Application
         sc.AddTransient<MainViewModel>();
         sc.AddTransient<TrangChuViewModel>();
         sc.AddTransient<NhanVienViewModel>();
+        sc.AddTransient<DoiMatKhauViewModel>();
         sc.AddTransient<LoginWindow>();
         sc.AddTransient<MainWindow>();
+        sc.AddTransient<DoiMatKhauWindow>();
 
         return sc.BuildServiceProvider();
     }

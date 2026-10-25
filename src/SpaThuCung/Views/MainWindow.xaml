@@ -25,6 +25,17 @@
 
         <SolidColorBrush x:Key="MauRoChuotMenu" Color="#F9EFE5" />
 
+        <!-- Liên kết chữ (Đổi mật khẩu): màu nhấn, đậm hơn khi rê chuột -->
+        <Style x:Key="LienKet" TargetType="Hyperlink">
+            <Setter Property="Foreground" Value="{StaticResource MauNhan}" />
+            <Setter Property="TextDecorations" Value="None" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource MauNhanDam}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Mục menu trái. Dòng tiêu đề nhóm (LaTieuDe) dùng template riêng và không chọn được. -->
         <Style x:Key="MucMenuStyle" TargetType="ListBoxItem">
             <Setter Property="Foreground" Value="{StaticResource MauChu}" />
@@ -100,8 +111,9 @@
                     <TextBlock Text="{Binding HoTen}" FontSize="18" FontWeight="SemiBold"
                                TextTrimming="CharacterEllipsis"
                                Foreground="{StaticResource MauChu}" />
-                    <TextBlock Text="{Binding VaiTro}" FontSize="14" Margin="0,2,0,0"
-                               Foreground="{StaticResource MauChuPhu}" />
+                    <TextBlock FontSize="14" Margin="0,2,0,0" Foreground="{StaticResource MauChuPhu}">
+                        <Run Text="{Binding VaiTro, Mode=OneWay}" /><Run Text=" · " /><Hyperlink Style="{StaticResource LienKet}" Command="{Binding DoiMatKhauCommand}">Đổi mật khẩu</Hyperlink>
+                    </TextBlock>
                 </StackPanel>
 
                 <ListBox Grid.Row="1"
