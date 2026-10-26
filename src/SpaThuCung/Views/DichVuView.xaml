@@ -472,12 +472,24 @@
                                                            Foreground="{StaticResource MauLoiChu}" />
                                             </Border>
 
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-                                                <ui:Button Content="Huỷ" MinWidth="80" Margin="0,0,8,0" Style="{StaticResource NutPhu}"
-                                                           Command="{Binding DataContext.HuySuaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                                <ui:Button Content="Lưu" MinWidth="80" Style="{StaticResource NutChinh}"
+                                            <DockPanel Margin="0,12,0,0" LastChildFill="False">
+                                                <!-- Xoá: chỉ dịch vụ đã lưu và chưa có phiếu nào -->
+                                                <ui:Button DockPanel.Dock="Left" Content="Xoá dịch vụ" MinWidth="80"
+                                                           Style="{StaticResource NutPhu}"
+                                                           Foreground="{StaticResource MauLoiChu}"
+                                                           PressedForeground="{StaticResource MauLoiChu}"
+                                                           Command="{Binding DataContext.XoaDichVuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                           Visibility="{Binding CoTheXoa, Converter={StaticResource BoolToVis}}" />
+                                                <TextBlock DockPanel.Dock="Left" FontSize="12" VerticalAlignment="Center"
+                                                           Foreground="{StaticResource MauChuPhu}"
+                                                           Text="Đã có phiếu dùng dịch vụ này nên không xoá được; có thể chuyển Ngừng cung cấp."
+                                                           Visibility="{Binding DaCoPhieu, Converter={StaticResource BoolToVis}}" />
+
+                                                <ui:Button DockPanel.Dock="Right" Content="Lưu" MinWidth="80" Style="{StaticResource NutChinh}"
                                                            Command="{Binding DataContext.LuuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                            </StackPanel>
+                                                <ui:Button DockPanel.Dock="Right" Content="Huỷ" MinWidth="80" Margin="0,0,8,0" Style="{StaticResource NutPhu}"
+                                                           Command="{Binding DataContext.HuySuaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                            </DockPanel>
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>

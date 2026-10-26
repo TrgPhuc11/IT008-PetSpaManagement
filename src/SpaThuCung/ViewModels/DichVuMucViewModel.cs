@@ -40,6 +40,11 @@ public partial class DichVuMucViewModel : ObservableObject
 
     public bool NgungCungCap => TrangThai == TrangThaiDichVu.NgungCungCap;
 
+    /// <summary>Dịch vụ đã lưu và chưa có phiếu nào dùng: được xoá.</summary>
+    public bool CoTheXoa => Dto is { DaCoPhieu: false };
+
+    public bool DaCoPhieu => Dto?.DaCoPhieu == true;
+
     public string TomTatGia => Dto is null || Dto.BangGia.Count == 0
         ? "Chưa có mức giá"
         : $"{Dto.BangGia.Count} mức giá";

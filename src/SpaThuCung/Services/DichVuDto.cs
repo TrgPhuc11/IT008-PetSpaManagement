@@ -8,8 +8,9 @@ namespace SpaThuCung.Services;
 /// </summary>
 public sealed class DichVuDto
 {
-    public DichVuDto(int maDv, string tenDv, string? moTa, string trangThai, IReadOnlyList<DongGiaDto> bangGia)
+    public DichVuDto(int maDv, string tenDv, string? moTa, string trangThai, IReadOnlyList<DongGiaDto> bangGia, bool daCoPhieu)
     {
+        DaCoPhieu = daCoPhieu;
         MaDv = maDv;
         TenDv = tenDv;
         MoTa = moTa;
@@ -21,6 +22,9 @@ public sealed class DichVuDto
     public string TenDv { get; }
     public string? MoTa { get; }
     public string TrangThai { get; }
+
+    /// <summary>Đã có phiếu dịch vụ dùng dịch vụ này: không được xoá, chỉ chuyển Ngừng cung cấp.</summary>
+    public bool DaCoPhieu { get; }
 
     /// <summary>Bảng giá, sắp theo loài (Chó trước) rồi cân nặng.</summary>
     public IReadOnlyList<DongGiaDto> BangGia { get; }

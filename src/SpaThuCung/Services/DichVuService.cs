@@ -33,7 +33,8 @@ public class DichVuService : IDichVuService
                 .Include(x => x.BangGia)
                 .OrderBy(x => x.MaDv)
                 .ToListAsync();
-            return KetQua<List<DichVuDto>>.Ok(ds.Select(ToDto).ToList());
+            var daCoPhieu = (await LayMaDvDaCoPhieuAsync(db, null)).ToHashSet();
+            return KetQua<List<DichVuDto>>.Ok(ds.Select(x => ToDto(x, daCoPhieu.Contains(x.MaDv))).ToList());
         }
         catch (Exception)
         {
@@ -130,6 +131,56 @@ public class DichVuService : IDichVuService
         }
     }
 
+    public async Task<KetQua> XoaAsync(int maDv)
+    {
+        if (!_phien.LaQuanLy) return KetQua.Loi(LoiQuyen);
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var dv = await db.DichVu.Include(x => x.BangGia).FirstOrDefaultAsync(x => x.MaDv == maDv);
+            if (dv is null) return KetQua.Loi(LoiKhongTim);
+
+            if ((await LayMaDvDaCoPhieuAsync(db, maDv)).Count > 0)
+                return KetQua.Loi(LoiDaCoPhieu(dv.TenDv));
+
+            // Bảng giá không xoá dây chuyền trong CSDL nên xoá các dòng giá trước, cùng một lần SaveChanges.
+            db.BangGia.RemoveRange(dv.BangGia);
+            db.DichVu.Remove(dv);
+
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Có phiếu vừa được lập trong lúc xoá: khoá ngoại của ChiTietPhieu chặn lại.
+                return KetQua.Loi(LoiDaCoPhieu(dv.TenDv));
+            }
+
+            return KetQua.Ok($"Đã xoá {dv.TenDv}.");
+        }
+        catch (Exception)
+        {
+            return KetQua.Loi(LoiKetNoi);
+        }
+    }
+
+    /// <summary>
+    /// Mã các dịch vụ đã có trong phiếu (bảng ChiTietPhieu); maDv khác null thì chỉ xét dịch vụ đó.
+    /// Bảng ChiTietPhieu chưa được tạo (chưa làm chức năng Lập phiếu) thì coi như chưa có phiếu nào.
+    /// Khi đã có entity ChiTietPhieu trong SpaDbContext, thay bằng truy vấn LINQ.
+    /// </summary>
+    private static async Task<List<int>> LayMaDvDaCoPhieuAsync(SpaDbContext db, int? maDv) =>
+        await db.Database.SqlQuery<int>($"""
+            IF OBJECT_ID(N'dbo.ChiTietPhieu', N'U') IS NULL
+                SELECT CAST(NULL AS INT) AS Value WHERE 1 = 0;
+            ELSE
+                EXEC sp_executesql
+                    N'SELECT DISTINCT ma_dv AS Value FROM dbo.ChiTietPhieu WHERE @ma IS NULL OR ma_dv = @ma',
+                    N'@ma INT', @ma = {maDv};
+            """).ToListAsync();
+
     public async Task<KetQua<List<GiaTraCuu>>> TraGiaAsync(string loai, decimal canNang)
     {
         if (!_phien.DaDangNhap) return KetQua<List<GiaTraCuu>>.Loi(LoiChuaDangNhap);
@@ -184,10 +235,14 @@ public class DichVuService : IDichVuService
 
     private static string LoiTrungTen(string ten) => $"Dịch vụ \"{ten}\" đã có.";
 
+    private static string LoiDaCoPhieu(string ten) =>
+        $"{ten} đã có phiếu dịch vụ nên không xoá được. Có thể chuyển sang Ngừng cung cấp.";
+
     /// <summary>Bảng giá sắp Chó trước Mèo, rồi theo cân nặng.</summary>
-    private static DichVuDto ToDto(DichVu dv) => new(dv.MaDv, dv.TenDv, dv.MoTa, dv.TrangThai,
+    private static DichVuDto ToDto(DichVu dv, bool daCoPhieu) => new(dv.MaDv, dv.TenDv, dv.MoTa, dv.TrangThai,
         dv.BangGia
             .OrderBy(x => x.Loai == LoaiThuCung.Cho ? 0 : 1).ThenBy(x => x.CanNangTu)
             .Select(x => new DongGiaDto(x.MaGia, x.Loai, x.CanNangTu, x.CanNangDen, x.Gia, x.ThoiLuong))
-            .ToList());
+            .ToList(),
+        daCoPhieu);
 }

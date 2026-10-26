@@ -61,6 +61,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     [NotifyCanExecuteChangedFor(nameof(LuuCommand))]
     [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
     [NotifyCanExecuteChangedFor(nameof(XoaMucGiaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaDichVuCommand))]
     private DichVuMucViewModel? _mucDangSua;
 
     /// <summary>Không có dịch vụ nào đang sửa: mới cho tìm, thêm dịch vụ, bấm Chỉnh sửa dịch vụ khác.</summary>
@@ -73,6 +74,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     [NotifyCanExecuteChangedFor(nameof(LuuCommand))]
     [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
     [NotifyCanExecuteChangedFor(nameof(XoaMucGiaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaDichVuCommand))]
     private bool _dangLuu;
 
     /// <summary>Đang tải lại danh sách: chưa cho bắt đầu sửa vì các thẻ sắp được dựng lại.</summary>
@@ -306,6 +308,38 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
             // Lưu xong: thôi sửa, giữ thẻ vừa lưu đang xổ, tải lại danh sách để thẻ hiện dữ liệu mới.
             _maDangMo.Add(kq.DuLieu);
+            ThoiSua(muc);
+            if (await TaiLaiAsync())
+                HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
+        }
+        finally
+        {
+            DangLuu = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(DangSuaVaRanh))]
+    private async Task XoaDichVuAsync()
+    {
+        var muc = MucDangSua;
+        if (muc is null || !muc.CoTheXoa) return;
+
+        var dongY = _hopThoai.XacNhan(
+            $"Xoá hẳn {muc.TenDv} cùng toàn bộ bảng giá? Không thể hoàn tác.",
+            "Xoá dịch vụ");
+        if (!dongY) return;
+
+        DangLuu = true;
+        try
+        {
+            var kq = await _dichVu.XoaAsync(muc.MaDv);
+            if (!kq.ThanhCong)
+            {
+                muc.Loi = kq.ThongBao;
+                return;
+            }
+
+            _maDangMo.Remove(muc.MaDv);
             ThoiSua(muc);
             if (await TaiLaiAsync())
                 HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
