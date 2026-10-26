@@ -67,11 +67,19 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     public bool KhongDangSua => MucDangSua is null;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ThemDichVuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ChinhSuaCommand))]
     [NotifyCanExecuteChangedFor(nameof(HuySuaCommand))]
     [NotifyCanExecuteChangedFor(nameof(LuuCommand))]
     [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
     [NotifyCanExecuteChangedFor(nameof(XoaMucGiaCommand))]
     private bool _dangLuu;
+
+    /// <summary>Đang tải lại danh sách: chưa cho bắt đầu sửa vì các thẻ sắp được dựng lại.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ThemDichVuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ChinhSuaCommand))]
+    private bool _dangTai;
 
     // ---------- Hộp thông báo ----------
 
@@ -110,7 +118,17 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
     private async Task<bool> TaiLaiAsync()
     {
-        var kq = await _dichVu.LayDanhSachAsync();
+        DangTai = true;
+        KetQua<List<DichVuDto>> kq;
+        try
+        {
+            kq = await _dichVu.LayDanhSachAsync();
+        }
+        finally
+        {
+            DangTai = false;
+        }
+
         if (!kq.ThanhCong)
         {
             HienThongBao(kq.ThongBao, LoaiThongBao.Loi);
@@ -164,7 +182,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
     // ---------- Bắt đầu / thôi chỉnh sửa ----------
 
-    private bool CoTheBatDauSua() => LaQuanLy && MucDangSua is null;
+    private bool CoTheBatDauSua() => LaQuanLy && MucDangSua is null && !DangLuu && !DangTai;
 
     [RelayCommand(CanExecute = nameof(CoTheBatDauSua))]
     private void ThemDichVu()
@@ -190,24 +208,27 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     private bool DangSuaVaRanh() => MucDangSua is not null && !DangLuu;
 
     [RelayCommand(CanExecute = nameof(DangSuaVaRanh))]
-    private void HuySua()
+    private async Task HuySuaAsync()
     {
         var muc = MucDangSua;
         if (muc is null) return;
 
-        MucDangSua = null;
+        ThoiSua(muc);
+
+        // Tải lại để thấy thay đổi người khác vừa lưu (nếu có).
+        await TaiLaiAsync();
+    }
+
+    /// <summary>Đưa thẻ về chế độ xem (thẻ mới chưa lưu thì bỏ khỏi danh sách) và cho phép sửa dịch vụ khác.</summary>
+    private void ThoiSua(DichVuMucViewModel muc)
+    {
+        muc.HuySua();
         if (muc.LaMoi)
         {
             DanhSach.Remove(muc);
             OnPropertyChanged(nameof(KhongCoDichVu));
         }
-        else
-        {
-            muc.HuySua();
-        }
-
-        // Tải lại để thấy thay đổi người khác vừa lưu (nếu có).
-        _ = TaiLaiAsync();
+        MucDangSua = null;
     }
 
     // ---------- Sửa bảng giá trong thẻ đang chỉnh sửa ----------
@@ -283,9 +304,9 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
                 return;
             }
 
-            // Lưu xong: thôi sửa, giữ thẻ vừa lưu đang xổ, tải lại danh sách.
+            // Lưu xong: thôi sửa, giữ thẻ vừa lưu đang xổ, tải lại danh sách để thẻ hiện dữ liệu mới.
             _maDangMo.Add(kq.DuLieu);
-            MucDangSua = null;
+            ThoiSua(muc);
             if (await TaiLaiAsync())
                 HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
         }
