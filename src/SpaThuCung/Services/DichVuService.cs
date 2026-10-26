@@ -179,7 +179,7 @@ public class DichVuService : IDichVuService
         }
     }
 
-    public async Task<KetQua> LuuBangGiaAsync(int maDv, IReadOnlyList<DongGiaNhap> ds)
+    public async Task<KetQua> LuuBangGiaAsync(int maDv, IReadOnlyList<DongGiaNhap> ds, IReadOnlyCollection<int> maXoa)
     {
         if (!_phien.LaQuanLy) return KetQua.Loi(LoiQuyen);
 
@@ -198,8 +198,17 @@ public class DichVuService : IDichVuService
             if (ds.Any(d => d.MaGia != 0 && !theoMa.ContainsKey(d.MaGia)))
                 return KetQua.Loi(LoiBangGiaDaDoi);
 
-            var giuLai = ds.Where(d => d.MaGia != 0).Select(d => d.MaGia).ToHashSet();
-            db.BangGia.RemoveRange(cu.Where(x => !giuLai.Contains(x.MaGia)));
+            // Chỉ xoá các dòng người dùng đã bấm Xoá; dòng đã bị xoá ở nơi khác thì bỏ qua.
+            var xoa = maXoa.ToHashSet();
+            db.BangGia.RemoveRange(cu.Where(x => xoa.Contains(x.MaGia)));
+
+            // Dòng có trong CSDL mà màn hình không gửi (người khác vừa thêm) vẫn giữ, nên kiểm tra chồng lấn trên cả bảng.
+            var coTrongDs = ds.Where(d => d.MaGia != 0).Select(d => d.MaGia).ToHashSet();
+            var conLai = cu.Where(x => !xoa.Contains(x.MaGia) && !coTrongDs.Contains(x.MaGia))
+                .Select(x => new DongGiaNhap(x.MaGia, x.Loai, x.CanNangTu, x.CanNangDen, x.Gia, x.ThoiLuong))
+                .ToList();
+            if (conLai.Count > 0 && QuyTacDichVu.KiemTraBangGia(ds.Concat(conLai).ToList()) is not null)
+                return KetQua.Loi(LoiBangGiaDaDoi);
 
             foreach (var d in ds)
             {
@@ -235,7 +244,7 @@ public class DichVuService : IDichVuService
         if (!_phien.DaDangNhap) return KetQua<List<GiaTraCuu>>.Loi(LoiChuaDangNhap);
         if (!LoaiThuCung.TatCa.Contains(loai)) return KetQua<List<GiaTraCuu>>.Loi("Chọn loài.");
         if (canNang <= 0 || canNang > QuyTacDichVu.CanNangToiDa)
-            return KetQua<List<GiaTraCuu>>.Loi("Nhập cân nặng lớn hơn 0.");
+            return KetQua<List<GiaTraCuu>>.Loi($"Cân nặng phải lớn hơn 0 và không quá {QuyTacDichVu.KgHienThi(QuyTacDichVu.CanNangToiDa)} kg.");
 
         try
         {

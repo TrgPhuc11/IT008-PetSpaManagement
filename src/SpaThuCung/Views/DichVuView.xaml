@@ -342,8 +342,10 @@
                                        Visibility="{Binding BangGiaTrong, Converter={StaticResource BoolToVis}}" />
 
                             <!-- Quản lý sửa trực tiếp trên bảng; Nhân viên chỉ xem -->
+                            <!-- Không cho sắp xếp: số dòng trong thông báo lỗi tính theo thứ tự hiển thị -->
                             <DataGrid Style="{StaticResource BangChung}" Margin="0"
-                                      IsReadOnly="{Binding ChiXem}"
+                                      CanUserSortColumns="False"
+                                      IsReadOnly="{Binding BangGiaChiDoc}"
                                       ItemsSource="{Binding DongGia}">
                                 <DataGrid.Columns>
                                     <DataGridComboBoxColumn Header="Loài" Width="80"
@@ -373,6 +375,7 @@
                                                            ToolTip="Xoá mức giá (chỉ mất khi bấm Lưu bảng giá)"
                                                            Command="{Binding DataContext.XoaMucGiaCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                            CommandParameter="{Binding}"
+                                                           IsEnabled="{Binding DataContext.SuaDuocBangGia, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                            Visibility="{Binding DataContext.LaQuanLy, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource BoolToVis}}" />
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>

@@ -18,8 +18,11 @@ public interface IDichVuService
     /// <summary>Đảo Đang cung cấp và Ngừng cung cấp. Không có chức năng xoá dịch vụ.</summary>
     Task<KetQua<DichVuDto>> DoiTrangThaiAsync(int maDv);
 
-    /// <summary>Thay toàn bộ bảng giá của dịch vụ bằng danh sách mới (dòng không còn trong danh sách bị xoá).</summary>
-    Task<KetQua> LuuBangGiaAsync(int maDv, IReadOnlyList<DongGiaNhap> ds);
+    /// <summary>
+    /// Lưu bảng giá: cập nhật/thêm các dòng trong ds, xoá đúng các dòng có mã trong maXoa.
+    /// Dòng không nhắc tới (ví dụ người khác vừa thêm) được giữ lại và vẫn được kiểm tra chồng lấn.
+    /// </summary>
+    Task<KetQua> LuuBangGiaAsync(int maDv, IReadOnlyList<DongGiaNhap> ds, IReadOnlyCollection<int> maXoa);
 
     /// <summary>Giá và thời lượng của các dịch vụ đang cung cấp cho một loài và cân nặng.</summary>
     Task<KetQua<List<GiaTraCuu>>> TraGiaAsync(string loai, decimal canNang);

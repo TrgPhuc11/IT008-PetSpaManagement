@@ -26,6 +26,9 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     private int? _maBangGiaDangHien;
     private int _lanTaiBangGia;
 
+    // Mã các dòng đã có trong CSDL mà người dùng bấm Xoá (chỉ xoá thật khi Lưu bảng giá).
+    private readonly HashSet<int> _maDaXoa = new();
+
     // Đang lọc lại danh sách: DataGrid tạm đẩy dòng chọn về null, không tải lại bảng giá theo.
     private bool _dangLoc;
 
@@ -38,8 +41,6 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
     /// <summary>Chỉ Quản lý thấy các nút thêm, sửa và sửa được bảng giá (Service vẫn kiểm tra lại quyền).</summary>
     public bool LaQuanLy { get; }
-
-    public bool ChiXem => !LaQuanLy;
 
     public string MoTaManHinh => LaQuanLy
         ? "Giá và thời lượng theo loài và khoảng cân nặng. Quản lý được thêm, sửa dịch vụ và chỉnh bảng giá."
@@ -134,6 +135,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     /// <summary>Bảng giá có chỉnh sửa chưa lưu. Khi đó khoá danh sách dịch vụ để không mất dữ liệu đang sửa.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ChonDuocDichVu))]
+    [NotifyCanExecuteChangedFor(nameof(LuuDichVuCommand))]
     [NotifyCanExecuteChangedFor(nameof(ThemCommand))]
     [NotifyCanExecuteChangedFor(nameof(SuaCommand))]
     [NotifyCanExecuteChangedFor(nameof(DoiTrangThaiCommand))]
@@ -146,8 +148,25 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     private string _loiBangGia = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BangGiaChiDoc))]
+    [NotifyPropertyChangedFor(nameof(SuaDuocBangGia))]
     [NotifyCanExecuteChangedFor(nameof(LuuBangGiaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(HoanTacCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
     private bool _dangLuuBangGia;
+
+    /// <summary>Bảng giá của dịch vụ đang chọn đã tải thành công. Tải lỗi thì không cho sửa, tránh lưu đè lên dữ liệu chưa thấy.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BangGiaChiDoc))]
+    [NotifyPropertyChangedFor(nameof(SuaDuocBangGia))]
+    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LuuBangGiaCommand))]
+    private bool _bangGiaDaTai;
+
+    /// <summary>Bảng giá không sửa được: Nhân viên, đang lưu hoặc chưa tải được.</summary>
+    public bool BangGiaChiDoc => !LaQuanLy || DangLuuBangGia || !BangGiaDaTai;
+
+    public bool SuaDuocBangGia => !BangGiaChiDoc;
 
     public bool CoLoiBangGia => !string.IsNullOrEmpty(LoiBangGia);
 
@@ -243,6 +262,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
         var lan = ++_lanTaiBangGia;
         _maBangGiaDangHien = maDv;
+        BangGiaDaTai = false;
         LoiBangGia = string.Empty;
         DatBangGia(Array.Empty<DongGiaDto>());
 
@@ -253,15 +273,19 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
         if (!kq.ThanhCong)
         {
+            // Cho phép chọn lại dòng này để tải lại.
+            _maBangGiaDangHien = null;
             LoiBangGia = kq.ThongBao;
             return;
         }
         DatBangGia(kq.DuLieu ?? new List<DongGiaDto>());
+        BangGiaDaTai = true;
     }
 
     private void DatBangGia(IEnumerable<DongGiaDto> ds)
     {
         DongGia.Clear();
+        _maDaXoa.Clear();
         foreach (var d in ds)
             DongGia.Add(new DongGiaViewModel(d, KhiBangGiaThayDoi));
         CoThayDoi = false;
@@ -370,7 +394,8 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         }
     }
 
-    private bool CoTheLuuDichVu() => !DangLuu;
+    // Không lưu form khi bảng giá đang sửa dở: lưu xong danh sách được chọn lại và bảng giá sẽ bị tải lại.
+    private bool CoTheLuuDichVu() => !DangLuu && !CoThayDoi;
 
     /// <summary>Lỗi thì giữ form và hiện lỗi trong form; thành công thì đóng form, tải lại, chọn lại dòng, báo ở hộp trên.</summary>
     private async Task XuLyKetQuaLuuAsync(bool thanhCong, string thongBao, int? chonMa)
@@ -398,7 +423,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
     // ---------- Lệnh của bảng giá (Quản lý) ----------
 
-    private bool CoTheThemMucGia() => LaQuanLy && DichVuDuocChon is not null;
+    private bool CoTheThemMucGia() => LaQuanLy && DichVuDuocChon is not null && BangGiaDaTai && !DangLuuBangGia;
 
     [RelayCommand(CanExecute = nameof(CoTheThemMucGia))]
     private void ThemMucGia()
@@ -418,12 +443,15 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
     [RelayCommand]
     private void XoaMucGia(DongGiaViewModel? dong)
     {
-        if (!LaQuanLy || dong is null) return;
+        if (BangGiaChiDoc || dong is null) return;
         if (DongGia.Remove(dong))
+        {
+            if (dong.MaGia != 0) _maDaXoa.Add(dong.MaGia);
             KhiBangGiaThayDoi();
+        }
     }
 
-    private bool CoTheHoanTac() => LaQuanLy && CoThayDoi;
+    private bool CoTheHoanTac() => LaQuanLy && CoThayDoi && !DangLuuBangGia;
 
     [RelayCommand(CanExecute = nameof(CoTheHoanTac))]
     private async Task HoanTacAsync()
@@ -432,7 +460,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         await TaiBangGiaAsync(DichVuDuocChon?.MaDv, true);
     }
 
-    private bool CoTheLuuBangGia() => LaQuanLy && CoThayDoi && !DangLuuBangGia;
+    private bool CoTheLuuBangGia() => LaQuanLy && CoThayDoi && BangGiaDaTai && !DangLuuBangGia;
 
     [RelayCommand(CanExecute = nameof(CoTheLuuBangGia))]
     private async Task LuuBangGiaAsync()
@@ -457,7 +485,7 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         DangLuuBangGia = true;
         try
         {
-            var kq = await _dichVu.LuuBangGiaAsync(dv.MaDv, ds);
+            var kq = await _dichVu.LuuBangGiaAsync(dv.MaDv, ds, _maDaXoa.ToList());
             if (!kq.ThanhCong)
             {
                 LoiBangGia = kq.ThongBao;
