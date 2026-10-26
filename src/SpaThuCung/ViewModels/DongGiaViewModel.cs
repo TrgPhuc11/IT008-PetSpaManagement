@@ -5,28 +5,31 @@ using SpaThuCung.Services;
 
 namespace SpaThuCung.ViewModels;
 
-/// <summary>Một dòng đang sửa trong bảng giá. Các ô là chuỗi để giữ nguyên những gì người dùng gõ.</summary>
+/// <summary>
+/// Một dòng của bảng giá trong thẻ dịch vụ. Dòng chỉ sửa được khi dịch vụ đang ở chế độ Chỉnh sửa (CoTheSua).
+/// Các ô là chuỗi để giữ nguyên những gì người dùng gõ.
+/// </summary>
 public partial class DongGiaViewModel : ObservableObject
 {
-    // Gán sau khi nạp dữ liệu ban đầu để việc nạp không bị tính là "có thay đổi".
-    private readonly Action? _khiThayDoi;
-
-    public DongGiaViewModel(DongGiaDto? dto, Action khiThayDoi)
+    public DongGiaViewModel(DongGiaDto? dto, bool coTheSua)
     {
-        if (dto is not null)
-        {
-            MaGia = dto.MaGia;
-            Loai = dto.Loai;
-            Tu = QuyTacDichVu.KgHienThi(dto.CanNangTu);
-            Den = QuyTacDichVu.KgHienThi(dto.CanNangDen);
-            Gia = QuyTacDichVu.TienHienThi(dto.Gia);
-            ThoiLuong = dto.ThoiLuong.ToString(CultureInfo.InvariantCulture);
-        }
-        _khiThayDoi = khiThayDoi;
+        CoTheSua = coTheSua;
+        if (dto is null) return;
+
+        MaGia = dto.MaGia;
+        Loai = dto.Loai;
+        Tu = QuyTacDichVu.KgHienThi(dto.CanNangTu);
+        Den = QuyTacDichVu.KgHienThi(dto.CanNangDen);
+        Gia = QuyTacDichVu.TienHienThi(dto.Gia);
+        ThoiLuong = dto.ThoiLuong.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>0 là dòng mới thêm.</summary>
     public int MaGia { get; }
+
+    public bool CoTheSua { get; }
+
+    public bool ChiXem => !CoTheSua;
 
     [ObservableProperty]
     private string _loai = LoaiThuCung.Cho;
@@ -42,12 +45,6 @@ public partial class DongGiaViewModel : ObservableObject
 
     [ObservableProperty]
     private string _thoiLuong = string.Empty;
-
-    partial void OnLoaiChanged(string value) => _khiThayDoi?.Invoke();
-    partial void OnTuChanged(string value) => _khiThayDoi?.Invoke();
-    partial void OnDenChanged(string value) => _khiThayDoi?.Invoke();
-    partial void OnGiaChanged(string value) => _khiThayDoi?.Invoke();
-    partial void OnThoiLuongChanged(string value) => _khiThayDoi?.Invoke();
 
     /// <summary>Đổi các ô thành số; trả thông báo lỗi nếu ô nào không đọc được.</summary>
     public string? ThuChuyen(out DongGiaNhap? dong)

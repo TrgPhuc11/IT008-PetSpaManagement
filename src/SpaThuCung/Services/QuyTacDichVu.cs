@@ -30,6 +30,13 @@ public static class QuyTacDichVu
         return null;
     }
 
+    public static string? KiemTraTrangThai(string trangThai)
+    {
+        if (trangThai != TrangThaiDichVu.DangCungCap && trangThai != TrangThaiDichVu.NgungCungCap)
+            return "Trạng thái dịch vụ không hợp lệ.";
+        return null;
+    }
+
     /// <summary>Kiểm tra từng dòng rồi kiểm tra các khoảng cân nặng cùng loài không chồng lấn.</summary>
     public static string? KiemTraBangGia(IReadOnlyList<DongGiaNhap> ds)
     {

@@ -6,23 +6,15 @@ namespace SpaThuCung.Services;
 /// </summary>
 public interface IDichVuService
 {
+    /// <summary>Tất cả dịch vụ kèm bảng giá.</summary>
     Task<KetQua<List<DichVuDto>>> LayDanhSachAsync();
 
-    /// <summary>Bảng giá của một dịch vụ, sắp theo loài rồi cân nặng.</summary>
-    Task<KetQua<List<DongGiaDto>>> LayBangGiaAsync(int maDv);
-
-    Task<KetQua<DichVuDto>> ThemAsync(string tenDv, string? moTa);
-
-    Task<KetQua<DichVuDto>> CapNhatAsync(int maDv, string tenDv, string? moTa);
-
-    /// <summary>Đảo Đang cung cấp và Ngừng cung cấp. Không có chức năng xoá dịch vụ.</summary>
-    Task<KetQua<DichVuDto>> DoiTrangThaiAsync(int maDv);
-
     /// <summary>
-    /// Lưu bảng giá: cập nhật/thêm các dòng trong ds, xoá đúng các dòng có mã trong maXoa.
-    /// Dòng không nhắc tới (ví dụ người khác vừa thêm) được giữ lại và vẫn được kiểm tra chồng lấn.
+    /// Thêm hoặc sửa một dịch vụ (tên, mô tả, trạng thái) cùng bảng giá trong một lần lưu.
+    /// Chỉ xoá đúng các dòng giá trong MaXoa; dòng không nhắc tới (ví dụ người khác vừa thêm) được giữ và vẫn kiểm tra chồng lấn.
+    /// Không có chức năng xoá dịch vụ. Trả về mã dịch vụ.
     /// </summary>
-    Task<KetQua> LuuBangGiaAsync(int maDv, IReadOnlyList<DongGiaNhap> ds, IReadOnlyCollection<int> maXoa);
+    Task<KetQua<int>> LuuAsync(DichVuLuu du);
 
     /// <summary>Giá và thời lượng của các dịch vụ đang cung cấp cho một loài và cân nặng.</summary>
     Task<KetQua<List<GiaTraCuu>>> TraGiaAsync(string loai, decimal canNang);

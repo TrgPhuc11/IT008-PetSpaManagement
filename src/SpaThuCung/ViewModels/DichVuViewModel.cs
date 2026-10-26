@@ -9,8 +9,8 @@ using SpaThuCung.Services;
 namespace SpaThuCung.ViewModels;
 
 /// <summary>
-/// Màn Dịch vụ và bảng giá (UC08, UC09). Quản lý thêm, sửa dịch vụ và chỉnh bảng giá;
-/// Nhân viên chỉ xem và tra giá theo loài, cân nặng.
+/// Màn Dịch vụ và bảng giá (UC08, UC09). Mỗi dịch vụ là một thẻ, bấm mũi tên để xổ bảng giá.
+/// Quản lý bấm Chỉnh sửa để sửa ngay trong thẻ, mỗi lần một dịch vụ; Nhân viên chỉ xem và tra giá.
 /// </summary>
 public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 {
@@ -19,18 +19,8 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
     private List<DichVuDto> _tatCa = new();
 
-    // Dịch vụ đang sửa trong form (giữ lại để đổi dòng chọn không ảnh hưởng form).
-    private int _maDangThaoTac;
-
-    // Dịch vụ của bảng giá đang hiển thị, và số lần tải để bỏ kết quả của lần tải cũ về muộn.
-    private int? _maBangGiaDangHien;
-    private int _lanTaiBangGia;
-
-    // Mã các dòng đã có trong CSDL mà người dùng bấm Xoá (chỉ xoá thật khi Lưu bảng giá).
-    private readonly HashSet<int> _maDaXoa = new();
-
-    // Đang lọc lại danh sách: DataGrid tạm đẩy dòng chọn về null, không tải lại bảng giá theo.
-    private bool _dangLoc;
+    // Các dịch vụ đang xổ bảng giá, giữ lại khi tải lại hoặc lọc danh sách.
+    private readonly HashSet<int> _maDangMo = new();
 
     public DichVuViewModel(IDichVuService dichVu, IPhienLamViec phien, IHopThoaiService hopThoai)
     {
@@ -39,48 +29,49 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         LaQuanLy = phien.LaQuanLy;
     }
 
-    /// <summary>Chỉ Quản lý thấy các nút thêm, sửa và sửa được bảng giá (Service vẫn kiểm tra lại quyền).</summary>
+    /// <summary>Chỉ Quản lý thấy nút Thêm dịch vụ, Chỉnh sửa (Service vẫn kiểm tra lại quyền).</summary>
     public bool LaQuanLy { get; }
 
     public string MoTaManHinh => LaQuanLy
-        ? "Giá và thời lượng theo loài và khoảng cân nặng. Quản lý được thêm, sửa dịch vụ và chỉnh bảng giá."
-        : "Giá và thời lượng theo loài và khoảng cân nặng. Nhân viên chỉ xem; nhập loài và cân nặng để tra giá tư vấn cho khách.";
+        ? "Bấm mũi tên để xem giá và thời lượng theo loài, khoảng cân nặng. Bấm Chỉnh sửa để sửa một dịch vụ và bảng giá của nó."
+        : "Bấm mũi tên để xem giá và thời lượng theo loài, khoảng cân nặng. Nhập loài và cân nặng để tra giá tư vấn cho khách.";
 
-    public ObservableCollection<DichVuDto> DanhSach { get; } = new();
-
-    public ObservableCollection<DongGiaViewModel> DongGia { get; } = new();
+    public ObservableCollection<DichVuMucViewModel> DanhSach { get; } = new();
 
     public ObservableCollection<GiaTraCuu> KetQuaTra { get; } = new();
 
     public IReadOnlyList<string> DanhSachLoai => LoaiThuCung.TatCa;
 
-    // ---------- Tìm kiếm, chọn dòng ----------
+    // ---------- Tìm kiếm ----------
 
     [ObservableProperty]
     private string _tuKhoa = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CoChonDichVu))]
-    [NotifyPropertyChangedFor(nameof(TieuDeBangGia))]
-    [NotifyPropertyChangedFor(nameof(NhanDoiTrangThai))]
-    [NotifyCanExecuteChangedFor(nameof(SuaCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DoiTrangThaiCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
-    private DichVuDto? _dichVuDuocChon;
-
-    public bool CoChonDichVu => DichVuDuocChon is not null;
-
-    public string TieuDeBangGia => DichVuDuocChon is null ? "Bảng giá" : $"Bảng giá: {DichVuDuocChon.TenDv}";
-
-    public string NhanDoiTrangThai => DichVuDuocChon?.NgungCungCap == true ? "Mở lại dịch vụ" : "Ngừng cung cấp";
-
     partial void OnTuKhoaChanged(string value) => LocDanhSach();
 
-    partial void OnDichVuDuocChonChanged(DichVuDto? value)
-    {
-        if (!_dangLoc)
-            _ = TaiBangGiaAsync(value?.MaDv, false);
-    }
+    public bool KhongCoDichVu => DanhSach.Count == 0;
+
+    // ---------- Dịch vụ đang chỉnh sửa (mỗi lần một) ----------
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(KhongDangSua))]
+    [NotifyCanExecuteChangedFor(nameof(ThemDichVuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ChinhSuaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(HuySuaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LuuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaMucGiaCommand))]
+    private DichVuMucViewModel? _mucDangSua;
+
+    /// <summary>Không có dịch vụ nào đang sửa: mới cho tìm, thêm dịch vụ, bấm Chỉnh sửa dịch vụ khác.</summary>
+    public bool KhongDangSua => MucDangSua is null;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(HuySuaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LuuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaMucGiaCommand))]
+    private bool _dangLuu;
 
     // ---------- Hộp thông báo ----------
 
@@ -99,81 +90,6 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         ThongBao = noiDung;
     }
 
-    // ---------- Form thêm / sửa dịch vụ ----------
-
-    [ObservableProperty]
-    private CheDoForm _cheDo = CheDoForm.Dong;
-
-    [ObservableProperty]
-    private string _formTen = string.Empty;
-
-    [ObservableProperty]
-    private string _formMoTa = string.Empty;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CoFormLoi))]
-    private string _formLoi = string.Empty;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(LuuDichVuCommand))]
-    private bool _dangLuu;
-
-    public bool CoFormLoi => !string.IsNullOrEmpty(FormLoi);
-
-    public bool DangMoForm => CheDo != CheDoForm.Dong;
-
-    public string NutLuuForm => CheDo == CheDoForm.Them ? "Thêm" : "Lưu";
-
-    partial void OnCheDoChanged(CheDoForm value)
-    {
-        OnPropertyChanged(nameof(DangMoForm));
-        OnPropertyChanged(nameof(NutLuuForm));
-    }
-
-    // ---------- Bảng giá ----------
-
-    /// <summary>Bảng giá có chỉnh sửa chưa lưu. Khi đó khoá danh sách dịch vụ để không mất dữ liệu đang sửa.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ChonDuocDichVu))]
-    [NotifyCanExecuteChangedFor(nameof(LuuDichVuCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ThemCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SuaCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DoiTrangThaiCommand))]
-    [NotifyCanExecuteChangedFor(nameof(HoanTacCommand))]
-    [NotifyCanExecuteChangedFor(nameof(LuuBangGiaCommand))]
-    private bool _coThayDoi;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CoLoiBangGia))]
-    private string _loiBangGia = string.Empty;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BangGiaChiDoc))]
-    [NotifyPropertyChangedFor(nameof(SuaDuocBangGia))]
-    [NotifyCanExecuteChangedFor(nameof(LuuBangGiaCommand))]
-    [NotifyCanExecuteChangedFor(nameof(HoanTacCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
-    private bool _dangLuuBangGia;
-
-    /// <summary>Bảng giá của dịch vụ đang chọn đã tải thành công. Tải lỗi thì không cho sửa, tránh lưu đè lên dữ liệu chưa thấy.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BangGiaChiDoc))]
-    [NotifyPropertyChangedFor(nameof(SuaDuocBangGia))]
-    [NotifyCanExecuteChangedFor(nameof(ThemMucGiaCommand))]
-    [NotifyCanExecuteChangedFor(nameof(LuuBangGiaCommand))]
-    private bool _bangGiaDaTai;
-
-    /// <summary>Bảng giá không sửa được: Nhân viên, đang lưu hoặc chưa tải được.</summary>
-    public bool BangGiaChiDoc => !LaQuanLy || DangLuuBangGia || !BangGiaDaTai;
-
-    public bool SuaDuocBangGia => !BangGiaChiDoc;
-
-    public bool CoLoiBangGia => !string.IsNullOrEmpty(LoiBangGia);
-
-    public bool ChonDuocDichVu => !CoThayDoi;
-
-    public bool BangGiaTrong => CoChonDichVu && DongGia.Count == 0;
-
     // ---------- Tra giá (UC09) ----------
 
     [ObservableProperty]
@@ -190,10 +106,9 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
 
     // ---------- Tải dữ liệu ----------
 
-    public async Task TaiDuLieuAsync() => await TaiLaiAsync(null);
+    public async Task TaiDuLieuAsync() => await TaiLaiAsync();
 
-    /// <summary>Tải lại danh sách dịch vụ; chonMa là dịch vụ cần chọn lại (null: giữ dòng đang chọn).</summary>
-    private async Task<bool> TaiLaiAsync(int? chonMa)
+    private async Task<bool> TaiLaiAsync()
     {
         var kq = await _dichVu.LayDanhSachAsync();
         if (!kq.ThanhCong)
@@ -203,41 +118,33 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         }
 
         _tatCa = kq.DuLieu ?? new List<DichVuDto>();
-        LocDanhSach(chonMa);
-
-        // Vào màn hình lần đầu thì chọn sẵn dịch vụ đầu tiên để thấy bảng giá.
-        if (DichVuDuocChon is null && DanhSach.Count > 0 && string.IsNullOrWhiteSpace(TuKhoa))
-            DichVuDuocChon = DanhSach[0];
+        LocDanhSach();
         return true;
     }
 
-    /// <summary>Lọc trên danh sách đã tải, không phân biệt hoa thường và dấu.</summary>
-    private void LocDanhSach(int? chonMa = null)
+    /// <summary>Dựng lại các thẻ từ danh sách đã tải, lọc theo từ khoá (không phân biệt hoa thường và dấu).</summary>
+    private void LocDanhSach()
     {
-        // Xoá danh sách làm DataGrid đẩy DichVuDuocChon = null, nên nhớ mã trước.
-        var ma = chonMa ?? DichVuDuocChon?.MaDv;
+        // Đang sửa thì ô tìm bị khoá; vẫn kiểm tra để không bao giờ xoá mất thẻ đang sửa.
+        if (MucDangSua is not null) return;
+
         var tuKhoa = BoDau(TuKhoa.Trim());
 
         IEnumerable<DichVuDto> kq = _tatCa;
         if (tuKhoa.Length > 0)
             kq = kq.Where(x => BoDau(x.TenDv).Contains(tuKhoa) || BoDau(x.MoTa ?? string.Empty).Contains(tuKhoa));
 
-        _dangLoc = true;
-        try
-        {
-            DanhSach.Clear();
-            foreach (var dv in kq)
-                DanhSach.Add(dv);
+        DanhSach.Clear();
+        foreach (var dv in kq)
+            DanhSach.Add(new DichVuMucViewModel(dv, _maDangMo.Contains(dv.MaDv), KhiDoiMo));
+        OnPropertyChanged(nameof(KhongCoDichVu));
+    }
 
-            DichVuDuocChon = ma is null ? null : DanhSach.FirstOrDefault(x => x.MaDv == ma.Value);
-        }
-        finally
-        {
-            _dangLoc = false;
-        }
-
-        // Chỉ tải lại khi dịch vụ được chọn thực sự đổi.
-        _ = TaiBangGiaAsync(DichVuDuocChon?.MaDv, false);
+    private void KhiDoiMo(DichVuMucViewModel muc)
+    {
+        if (muc.LaMoi) return;
+        if (muc.DangMo) _maDangMo.Add(muc.MaDv);
+        else _maDangMo.Remove(muc.MaDv);
     }
 
     /// <summary>Bỏ dấu tiếng Việt và hạ chữ thường để so khớp.</summary>
@@ -255,249 +162,136 @@ public partial class DichVuViewModel : ObservableObject, ICoTaiDuLieu
         return sb.ToString();
     }
 
-    /// <summary>Tải bảng giá của dịch vụ; batBuoc = false thì bỏ qua khi bảng đang hiện đúng dịch vụ đó.</summary>
-    private async Task TaiBangGiaAsync(int? maDv, bool batBuoc)
-    {
-        if (!batBuoc && maDv == _maBangGiaDangHien) return;
+    // ---------- Bắt đầu / thôi chỉnh sửa ----------
 
-        var lan = ++_lanTaiBangGia;
-        _maBangGiaDangHien = maDv;
-        BangGiaDaTai = false;
-        LoiBangGia = string.Empty;
-        DatBangGia(Array.Empty<DongGiaDto>());
+    private bool CoTheBatDauSua() => LaQuanLy && MucDangSua is null;
 
-        if (maDv is null) return;
-
-        var kq = await _dichVu.LayBangGiaAsync(maDv.Value);
-        if (lan != _lanTaiBangGia) return; // Người dùng đã chọn dịch vụ khác trong lúc chờ.
-
-        if (!kq.ThanhCong)
-        {
-            // Cho phép chọn lại dòng này để tải lại.
-            _maBangGiaDangHien = null;
-            LoiBangGia = kq.ThongBao;
-            return;
-        }
-        DatBangGia(kq.DuLieu ?? new List<DongGiaDto>());
-        BangGiaDaTai = true;
-    }
-
-    private void DatBangGia(IEnumerable<DongGiaDto> ds)
-    {
-        DongGia.Clear();
-        _maDaXoa.Clear();
-        foreach (var d in ds)
-            DongGia.Add(new DongGiaViewModel(d, KhiBangGiaThayDoi));
-        CoThayDoi = false;
-        OnPropertyChanged(nameof(BangGiaTrong));
-    }
-
-    private void KhiBangGiaThayDoi()
-    {
-        CoThayDoi = true;
-        LoiBangGia = string.Empty;
-        OnPropertyChanged(nameof(BangGiaTrong));
-    }
-
-    // ---------- Lệnh trên thanh công cụ (Quản lý) ----------
-
-    private bool CoTheThem() => LaQuanLy && !CoThayDoi;
-
-    private bool CoTheSuaDichVu() => LaQuanLy && !CoThayDoi && DichVuDuocChon is not null;
-
-    [RelayCommand(CanExecute = nameof(CoTheThem))]
-    private void Them()
+    [RelayCommand(CanExecute = nameof(CoTheBatDauSua))]
+    private void ThemDichVu()
     {
         ThongBao = string.Empty;
-        DatLaiForm();
-        CheDo = CheDoForm.Them;
+        var muc = new DichVuMucViewModel(null, true, KhiDoiMo);
+        DanhSach.Insert(0, muc);
+        OnPropertyChanged(nameof(KhongCoDichVu));
+        muc.BatDauSua();
+        MucDangSua = muc;
     }
 
-    [RelayCommand(CanExecute = nameof(CoTheSuaDichVu))]
-    private void Sua()
+    [RelayCommand(CanExecute = nameof(CoTheBatDauSua))]
+    private void ChinhSua(DichVuMucViewModel? muc)
     {
-        var dv = DichVuDuocChon;
-        if (dv is null) return;
+        if (muc is null || !CoTheBatDauSua()) return;
 
         ThongBao = string.Empty;
-        DatLaiForm();
-        _maDangThaoTac = dv.MaDv;
-        FormTen = dv.TenDv;
-        FormMoTa = dv.MoTa ?? string.Empty;
-        CheDo = CheDoForm.Sua;
+        muc.BatDauSua();
+        MucDangSua = muc;
     }
 
-    [RelayCommand(CanExecute = nameof(CoTheSuaDichVu))]
-    private async Task DoiTrangThaiAsync()
+    private bool DangSuaVaRanh() => MucDangSua is not null && !DangLuu;
+
+    [RelayCommand(CanExecute = nameof(DangSuaVaRanh))]
+    private void HuySua()
     {
-        var dv = DichVuDuocChon;
-        if (dv is null) return;
+        var muc = MucDangSua;
+        if (muc is null) return;
 
-        // Ngừng cung cấp thì hỏi lại; mở lại thì làm luôn.
-        if (!dv.NgungCungCap)
+        MucDangSua = null;
+        if (muc.LaMoi)
         {
-            var dongY = _hopThoai.XacNhan(
-                $"Ngừng cung cấp {dv.TenDv}? Dịch vụ sẽ không chọn được khi lập phiếu mới; phiếu đã lập không bị ảnh hưởng.",
-                "Đổi trạng thái dịch vụ");
-            if (!dongY) return;
+            DanhSach.Remove(muc);
+            OnPropertyChanged(nameof(KhongCoDichVu));
+        }
+        else
+        {
+            muc.HuySua();
         }
 
-        var kq = await _dichVu.DoiTrangThaiAsync(dv.MaDv);
-        if (!kq.ThanhCong)
-        {
-            HienThongBao(kq.ThongBao, LoaiThongBao.Loi);
-            return;
-        }
-
-        if (await TaiLaiAsync(dv.MaDv))
-            HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
+        // Tải lại để thấy thay đổi người khác vừa lưu (nếu có).
+        _ = TaiLaiAsync();
     }
 
-    // ---------- Lệnh trong form ----------
+    // ---------- Sửa bảng giá trong thẻ đang chỉnh sửa ----------
 
-    [RelayCommand]
-    private void HuyForm()
-    {
-        CheDo = CheDoForm.Dong;
-        DatLaiForm();
-    }
-
-    [RelayCommand(CanExecute = nameof(CoTheLuuDichVu))]
-    private async Task LuuDichVuAsync()
-    {
-        FormLoi = string.Empty;
-
-        // Kiểm tra nhanh trong ViewModel; quy tắc đầy đủ do Service kiểm tra lại.
-        if (string.IsNullOrWhiteSpace(FormTen))
-        {
-            FormLoi = "Nhập tên dịch vụ.";
-            return;
-        }
-
-        DangLuu = true;
-        try
-        {
-            if (CheDo == CheDoForm.Them)
-            {
-                var kq = await _dichVu.ThemAsync(FormTen, FormMoTa);
-                await XuLyKetQuaLuuAsync(kq.ThanhCong, kq.ThongBao, kq.DuLieu?.MaDv);
-            }
-            else if (CheDo == CheDoForm.Sua)
-            {
-                var kq = await _dichVu.CapNhatAsync(_maDangThaoTac, FormTen, FormMoTa);
-                await XuLyKetQuaLuuAsync(kq.ThanhCong, kq.ThongBao, _maDangThaoTac);
-            }
-        }
-        finally
-        {
-            DangLuu = false;
-        }
-    }
-
-    // Không lưu form khi bảng giá đang sửa dở: lưu xong danh sách được chọn lại và bảng giá sẽ bị tải lại.
-    private bool CoTheLuuDichVu() => !DangLuu && !CoThayDoi;
-
-    /// <summary>Lỗi thì giữ form và hiện lỗi trong form; thành công thì đóng form, tải lại, chọn lại dòng, báo ở hộp trên.</summary>
-    private async Task XuLyKetQuaLuuAsync(bool thanhCong, string thongBao, int? chonMa)
-    {
-        if (!thanhCong)
-        {
-            FormLoi = thongBao;
-            return;
-        }
-
-        CheDo = CheDoForm.Dong;
-        DatLaiForm();
-
-        if (await TaiLaiAsync(chonMa))
-            HienThongBao(thongBao, LoaiThongBao.ThanhCong);
-    }
-
-    private void DatLaiForm()
-    {
-        _maDangThaoTac = 0;
-        FormTen = string.Empty;
-        FormMoTa = string.Empty;
-        FormLoi = string.Empty;
-    }
-
-    // ---------- Lệnh của bảng giá (Quản lý) ----------
-
-    private bool CoTheThemMucGia() => LaQuanLy && DichVuDuocChon is not null && BangGiaDaTai && !DangLuuBangGia;
-
-    [RelayCommand(CanExecute = nameof(CoTheThemMucGia))]
+    [RelayCommand(CanExecute = nameof(DangSuaVaRanh))]
     private void ThemMucGia()
     {
+        var muc = MucDangSua;
+        if (muc is null) return;
+
         // Dòng mới nối tiếp khoảng cân nặng lớn nhất của cùng loài cho đỡ phải gõ.
-        var dong = new DongGiaViewModel(null, KhiBangGiaThayDoi);
-        var denLonNhat = DongGia
+        var dong = new DongGiaViewModel(null, true);
+        var denLonNhat = muc.DongGia
             .Where(x => x.Loai == dong.Loai)
             .Select(x => DongGiaViewModel.DocKg(x.Den, out var kg) ? kg : (decimal?)null)
             .Max();
         dong.Tu = denLonNhat is null ? "0" : QuyTacDichVu.KgHienThi(denLonNhat.Value);
 
-        DongGia.Add(dong);
-        KhiBangGiaThayDoi();
+        muc.ThemDong(dong);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(DangSuaVaRanh))]
     private void XoaMucGia(DongGiaViewModel? dong)
     {
-        if (BangGiaChiDoc || dong is null) return;
-        if (DongGia.Remove(dong))
+        if (dong is null || !dong.CoTheSua) return;
+        MucDangSua?.XoaDong(dong);
+    }
+
+    [RelayCommand(CanExecute = nameof(DangSuaVaRanh))]
+    private async Task LuuAsync()
+    {
+        var muc = MucDangSua;
+        if (muc is null) return;
+
+        muc.Loi = string.Empty;
+
+        // Kiểm tra nhanh trong ViewModel; quy tắc đầy đủ do Service kiểm tra lại.
+        if (string.IsNullOrWhiteSpace(muc.FormTen))
         {
-            if (dong.MaGia != 0) _maDaXoa.Add(dong.MaGia);
-            KhiBangGiaThayDoi();
+            muc.Loi = "Nhập tên dịch vụ.";
+            return;
         }
-    }
-
-    private bool CoTheHoanTac() => LaQuanLy && CoThayDoi && !DangLuuBangGia;
-
-    [RelayCommand(CanExecute = nameof(CoTheHoanTac))]
-    private async Task HoanTacAsync()
-    {
-        ThongBao = string.Empty;
-        await TaiBangGiaAsync(DichVuDuocChon?.MaDv, true);
-    }
-
-    private bool CoTheLuuBangGia() => LaQuanLy && CoThayDoi && BangGiaDaTai && !DangLuuBangGia;
-
-    [RelayCommand(CanExecute = nameof(CoTheLuuBangGia))]
-    private async Task LuuBangGiaAsync()
-    {
-        var dv = DichVuDuocChon;
-        if (dv is null) return;
-
-        LoiBangGia = string.Empty;
 
         var ds = new List<DongGiaNhap>();
-        for (var i = 0; i < DongGia.Count; i++)
+        for (var i = 0; i < muc.DongGia.Count; i++)
         {
-            var loi = DongGia[i].ThuChuyen(out var dong);
+            var loi = muc.DongGia[i].ThuChuyen(out var dong);
             if (loi is not null)
             {
-                LoiBangGia = $"Dòng {i + 1}: {loi}";
+                muc.Loi = $"Dòng {i + 1}: {loi}";
                 return;
             }
             ds.Add(dong!);
         }
 
-        DangLuuBangGia = true;
+        // Chuyển sang Ngừng cung cấp thì hỏi lại.
+        if (!muc.NgungCungCap && !muc.LaMoi && muc.FormTrangThai == TrangThaiDichVu.NgungCungCap)
+        {
+            var dongY = _hopThoai.XacNhan(
+                $"Ngừng cung cấp {muc.TenDv}? Dịch vụ sẽ không chọn được khi lập phiếu mới; phiếu đã lập không bị ảnh hưởng.",
+                "Ngừng cung cấp dịch vụ");
+            if (!dongY) return;
+        }
+
+        DangLuu = true;
         try
         {
-            var kq = await _dichVu.LuuBangGiaAsync(dv.MaDv, ds, _maDaXoa.ToList());
+            var kq = await _dichVu.LuuAsync(new DichVuLuu(
+                muc.MaDv, muc.FormTen, muc.FormMoTa, muc.FormTrangThai, ds, muc.MaDaXoa.ToList()));
             if (!kq.ThanhCong)
             {
-                LoiBangGia = kq.ThongBao;
+                muc.Loi = kq.ThongBao;
                 return;
             }
 
-            await TaiBangGiaAsync(dv.MaDv, true);
-            HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
+            // Lưu xong: thôi sửa, giữ thẻ vừa lưu đang xổ, tải lại danh sách.
+            _maDangMo.Add(kq.DuLieu);
+            MucDangSua = null;
+            if (await TaiLaiAsync())
+                HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
         }
         finally
         {
-            DangLuuBangGia = false;
+            DangLuu = false;
         }
     }
 

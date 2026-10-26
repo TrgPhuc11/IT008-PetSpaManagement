@@ -11,7 +11,7 @@ public class DichVuService : IDichVuService
     private const string LoiQuyen = "Chỉ Quản lý được thêm, sửa dịch vụ và chỉnh bảng giá.";
     private const string LoiLuu = "Không lưu được vào cơ sở dữ liệu.";
     private const string LoiKhongTim = "Không tìm thấy dịch vụ.";
-    private const string LoiBangGiaDaDoi = "Bảng giá vừa được thay đổi ở nơi khác. Hãy tải lại rồi sửa.";
+    private const string LoiBangGiaDaDoi = "Bảng giá vừa được thay đổi ở nơi khác. Bấm Huỷ để tải lại rồi sửa.";
 
     private readonly IDbContextFactory<SpaDbContext> _dbFactory;
     private readonly IPhienLamViec _phien;
@@ -30,10 +30,10 @@ public class DichVuService : IDichVuService
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             var ds = await db.DichVu.AsNoTracking()
+                .Include(x => x.BangGia)
                 .OrderBy(x => x.MaDv)
-                .Select(x => new DichVuDto(x.MaDv, x.TenDv, x.MoTa, x.TrangThai))
                 .ToListAsync();
-            return KetQua<List<DichVuDto>>.Ok(ds);
+            return KetQua<List<DichVuDto>>.Ok(ds.Select(ToDto).ToList());
         }
         catch (Exception)
         {
@@ -41,201 +41,92 @@ public class DichVuService : IDichVuService
         }
     }
 
-    public async Task<KetQua<List<DongGiaDto>>> LayBangGiaAsync(int maDv)
+    public async Task<KetQua<int>> LuuAsync(DichVuLuu du)
     {
-        if (!_phien.DaDangNhap) return KetQua<List<DongGiaDto>>.Loi(LoiChuaDangNhap);
+        if (!_phien.LaQuanLy) return KetQua<int>.Loi(LoiQuyen);
 
-        try
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            var ds = await db.BangGia.AsNoTracking()
-                .Where(x => x.MaDv == maDv)
-                .Select(x => new DongGiaDto(x.MaGia, x.Loai, x.CanNangTu, x.CanNangDen, x.Gia, x.ThoiLuong))
-                .ToListAsync();
+        var tenDv = (du.TenDv ?? string.Empty).Trim();
+        var moTa = string.IsNullOrWhiteSpace(du.MoTa) ? null : du.MoTa.Trim();
 
-            // Chó trước Mèo, rồi theo cân nặng (sắp ở client vì thứ tự loài theo danh sách cố định).
-            return KetQua<List<DongGiaDto>>.Ok(SapXep(ds).ToList());
-        }
-        catch (Exception)
-        {
-            return KetQua<List<DongGiaDto>>.Loi(LoiKetNoi);
-        }
-    }
-
-    public async Task<KetQua<DichVuDto>> ThemAsync(string tenDv, string? moTa)
-    {
-        if (!_phien.LaQuanLy) return KetQua<DichVuDto>.Loi(LoiQuyen);
-
-        tenDv = (tenDv ?? string.Empty).Trim();
-        moTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa.Trim();
-
-        var loi = QuyTacDichVu.KiemTraTen(tenDv) ?? QuyTacDichVu.KiemTraMoTa(moTa);
-        if (loi is not null) return KetQua<DichVuDto>.Loi(loi);
+        var loi = QuyTacDichVu.KiemTraTen(tenDv)
+               ?? QuyTacDichVu.KiemTraMoTa(moTa)
+               ?? QuyTacDichVu.KiemTraTrangThai(du.TrangThai)
+               ?? QuyTacDichVu.KiemTraBangGia(du.BangGia);
+        if (loi is not null) return KetQua<int>.Loi(loi);
 
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             // So sánh không phân biệt hoa thường nhờ collation mặc định của SQL Server.
-            if (await db.DichVu.AnyAsync(x => x.TenDv == tenDv))
-                return KetQua<DichVuDto>.Loi(LoiTrungTen(tenDv));
+            if (await db.DichVu.AnyAsync(x => x.TenDv == tenDv && x.MaDv != du.MaDv))
+                return KetQua<int>.Loi(LoiTrungTen(tenDv));
 
-            var dv = new DichVu { TenDv = tenDv, MoTa = moTa, TrangThai = TrangThaiDichVu.DangCungCap };
-            db.DichVu.Add(dv);
-
-            try
+            DichVu dv;
+            if (du.MaDv == 0)
             {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                // Hai người cùng thêm một tên: ràng buộc UNIQUE chặn lại.
-                return KetQua<DichVuDto>.Loi(await TrungTenAsync(tenDv, 0) ? LoiTrungTen(tenDv) : LoiLuu);
-            }
+                if (du.BangGia.Any(d => d.MaGia != 0)) return KetQua<int>.Loi(LoiBangGiaDaDoi);
 
-            return KetQua<DichVuDto>.Ok(ToDto(dv), $"Đã thêm {tenDv}. Thêm mức giá ở bảng bên phải.");
-        }
-        catch (Exception)
-        {
-            return KetQua<DichVuDto>.Loi(LoiKetNoi);
-        }
-    }
-
-    public async Task<KetQua<DichVuDto>> CapNhatAsync(int maDv, string tenDv, string? moTa)
-    {
-        if (!_phien.LaQuanLy) return KetQua<DichVuDto>.Loi(LoiQuyen);
-
-        tenDv = (tenDv ?? string.Empty).Trim();
-        moTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa.Trim();
-
-        var loi = QuyTacDichVu.KiemTraTen(tenDv) ?? QuyTacDichVu.KiemTraMoTa(moTa);
-        if (loi is not null) return KetQua<DichVuDto>.Loi(loi);
-
-        try
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            var dv = await db.DichVu.FirstOrDefaultAsync(x => x.MaDv == maDv);
-            if (dv is null) return KetQua<DichVuDto>.Loi(LoiKhongTim);
-
-            if (await db.DichVu.AnyAsync(x => x.TenDv == tenDv && x.MaDv != maDv))
-                return KetQua<DichVuDto>.Loi(LoiTrungTen(tenDv));
-
-            dv.TenDv = tenDv;
-            dv.MoTa = moTa;
-
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                return KetQua<DichVuDto>.Loi(await TrungTenAsync(tenDv, maDv) ? LoiTrungTen(tenDv) : LoiLuu);
-            }
-
-            return KetQua<DichVuDto>.Ok(ToDto(dv), $"Đã cập nhật {tenDv}.");
-        }
-        catch (Exception)
-        {
-            return KetQua<DichVuDto>.Loi(LoiKetNoi);
-        }
-    }
-
-    public async Task<KetQua<DichVuDto>> DoiTrangThaiAsync(int maDv)
-    {
-        if (!_phien.LaQuanLy) return KetQua<DichVuDto>.Loi(LoiQuyen);
-
-        try
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            var dv = await db.DichVu.FirstOrDefaultAsync(x => x.MaDv == maDv);
-            if (dv is null) return KetQua<DichVuDto>.Loi(LoiKhongTim);
-
-            string thongBao;
-            if (dv.TrangThai == TrangThaiDichVu.DangCungCap)
-            {
-                dv.TrangThai = TrangThaiDichVu.NgungCungCap;
-                thongBao = $"Đã ngừng cung cấp {dv.TenDv}. Phiếu cũ không bị ảnh hưởng.";
+                dv = new DichVu();
+                db.DichVu.Add(dv);
             }
             else
             {
-                dv.TrangThai = TrangThaiDichVu.DangCungCap;
-                thongBao = $"Đã mở lại {dv.TenDv}.";
+                var tim = await db.DichVu.Include(x => x.BangGia).FirstOrDefaultAsync(x => x.MaDv == du.MaDv);
+                if (tim is null) return KetQua<int>.Loi(LoiKhongTim);
+                dv = tim;
+
+                var theoMa = dv.BangGia.ToDictionary(x => x.MaGia);
+
+                // Dòng cũ phải còn trong CSDL và thuộc đúng dịch vụ này.
+                if (du.BangGia.Any(d => d.MaGia != 0 && !theoMa.ContainsKey(d.MaGia)))
+                    return KetQua<int>.Loi(LoiBangGiaDaDoi);
+
+                // Chỉ xoá các dòng người dùng đã bấm Xoá; dòng đã bị xoá ở nơi khác thì bỏ qua.
+                var xoa = du.MaXoa.ToHashSet();
+                db.BangGia.RemoveRange(dv.BangGia.Where(x => xoa.Contains(x.MaGia)));
+
+                // Dòng có trong CSDL mà màn hình không gửi (người khác vừa thêm) vẫn giữ, nên kiểm tra chồng lấn trên cả bảng.
+                var coTrongDs = du.BangGia.Where(d => d.MaGia != 0).Select(d => d.MaGia).ToHashSet();
+                var conLai = dv.BangGia.Where(x => !xoa.Contains(x.MaGia) && !coTrongDs.Contains(x.MaGia))
+                    .Select(x => new DongGiaNhap(x.MaGia, x.Loai, x.CanNangTu, x.CanNangDen, x.Gia, x.ThoiLuong))
+                    .ToList();
+                if (conLai.Count > 0 && QuyTacDichVu.KiemTraBangGia(du.BangGia.Concat(conLai).ToList()) is not null)
+                    return KetQua<int>.Loi(LoiBangGiaDaDoi);
+
+                foreach (var d in du.BangGia.Where(d => d.MaGia != 0))
+                    GanDong(theoMa[d.MaGia], d);
             }
 
+            dv.TenDv = tenDv;
+            dv.MoTa = moTa;
+            dv.TrangThai = du.TrangThai;
+            foreach (var d in du.BangGia.Where(d => d.MaGia == 0))
+            {
+                var dong = new BangGia();
+                GanDong(dong, d);
+                dv.BangGia.Add(dong);
+            }
+
+            // Một lần SaveChanges chạy trong một transaction: lỗi thì không có gì bị đổi.
             try
             {
                 await db.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                return KetQua<DichVuDto>.Loi(LoiLuu);
+                // Hai người cùng lưu một tên: ràng buộc UNIQUE chặn lại.
+                return KetQua<int>.Loi(await TrungTenAsync(tenDv, du.MaDv) ? LoiTrungTen(tenDv) : LoiLuu);
             }
 
-            return KetQua<DichVuDto>.Ok(ToDto(dv), thongBao);
+            var thongBao = du.MaDv == 0
+                ? $"Đã thêm {tenDv}."
+                : $"Đã lưu {tenDv}. Phiếu lập từ giờ dùng giá và thời lượng mới; phiếu đã lập giữ giá cũ.";
+            return KetQua<int>.Ok(dv.MaDv, thongBao);
         }
         catch (Exception)
         {
-            return KetQua<DichVuDto>.Loi(LoiKetNoi);
-        }
-    }
-
-    public async Task<KetQua> LuuBangGiaAsync(int maDv, IReadOnlyList<DongGiaNhap> ds, IReadOnlyCollection<int> maXoa)
-    {
-        if (!_phien.LaQuanLy) return KetQua.Loi(LoiQuyen);
-
-        var loi = QuyTacDichVu.KiemTraBangGia(ds);
-        if (loi is not null) return KetQua.Loi(loi);
-
-        try
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            if (!await db.DichVu.AnyAsync(x => x.MaDv == maDv)) return KetQua.Loi(LoiKhongTim);
-
-            var cu = await db.BangGia.Where(x => x.MaDv == maDv).ToListAsync();
-            var theoMa = cu.ToDictionary(x => x.MaGia);
-
-            // Dòng cũ phải còn trong CSDL và thuộc đúng dịch vụ này.
-            if (ds.Any(d => d.MaGia != 0 && !theoMa.ContainsKey(d.MaGia)))
-                return KetQua.Loi(LoiBangGiaDaDoi);
-
-            // Chỉ xoá các dòng người dùng đã bấm Xoá; dòng đã bị xoá ở nơi khác thì bỏ qua.
-            var xoa = maXoa.ToHashSet();
-            db.BangGia.RemoveRange(cu.Where(x => xoa.Contains(x.MaGia)));
-
-            // Dòng có trong CSDL mà màn hình không gửi (người khác vừa thêm) vẫn giữ, nên kiểm tra chồng lấn trên cả bảng.
-            var coTrongDs = ds.Where(d => d.MaGia != 0).Select(d => d.MaGia).ToHashSet();
-            var conLai = cu.Where(x => !xoa.Contains(x.MaGia) && !coTrongDs.Contains(x.MaGia))
-                .Select(x => new DongGiaNhap(x.MaGia, x.Loai, x.CanNangTu, x.CanNangDen, x.Gia, x.ThoiLuong))
-                .ToList();
-            if (conLai.Count > 0 && QuyTacDichVu.KiemTraBangGia(ds.Concat(conLai).ToList()) is not null)
-                return KetQua.Loi(LoiBangGiaDaDoi);
-
-            foreach (var d in ds)
-            {
-                var dong = d.MaGia == 0 ? new BangGia { MaDv = maDv } : theoMa[d.MaGia];
-                dong.Loai = d.Loai;
-                dong.CanNangTu = d.CanNangTu;
-                dong.CanNangDen = d.CanNangDen;
-                dong.Gia = d.Gia;
-                dong.ThoiLuong = d.ThoiLuong;
-                if (d.MaGia == 0) db.BangGia.Add(dong);
-            }
-
-            // Một lần SaveChanges chạy trong một transaction: lỗi thì không dòng nào bị đổi.
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                return KetQua.Loi(LoiLuu);
-            }
-
-            return KetQua.Ok("Đã lưu bảng giá. Phiếu lập từ giờ dùng giá và thời lượng mới; phiếu đã lập giữ giá cũ.");
-        }
-        catch (Exception)
-        {
-            return KetQua.Loi(LoiKetNoi);
+            return KetQua<int>.Loi(LoiKetNoi);
         }
     }
 
@@ -282,10 +173,21 @@ public class DichVuService : IDichVuService
         }
     }
 
-    private static IEnumerable<DongGiaDto> SapXep(IEnumerable<DongGiaDto> ds) =>
-        ds.OrderBy(x => x.Loai == LoaiThuCung.Cho ? 0 : 1).ThenBy(x => x.CanNangTu);
+    private static void GanDong(BangGia dong, DongGiaNhap d)
+    {
+        dong.Loai = d.Loai;
+        dong.CanNangTu = d.CanNangTu;
+        dong.CanNangDen = d.CanNangDen;
+        dong.Gia = d.Gia;
+        dong.ThoiLuong = d.ThoiLuong;
+    }
 
     private static string LoiTrungTen(string ten) => $"Dịch vụ \"{ten}\" đã có.";
 
-    private static DichVuDto ToDto(DichVu dv) => new(dv.MaDv, dv.TenDv, dv.MoTa, dv.TrangThai);
+    /// <summary>Bảng giá sắp Chó trước Mèo, rồi theo cân nặng.</summary>
+    private static DichVuDto ToDto(DichVu dv) => new(dv.MaDv, dv.TenDv, dv.MoTa, dv.TrangThai,
+        dv.BangGia
+            .OrderBy(x => x.Loai == LoaiThuCung.Cho ? 0 : 1).ThenBy(x => x.CanNangTu)
+            .Select(x => new DongGiaDto(x.MaGia, x.Loai, x.CanNangTu, x.CanNangDen, x.Gia, x.ThoiLuong))
+            .ToList());
 }
