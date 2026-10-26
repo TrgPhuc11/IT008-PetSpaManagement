@@ -1,0 +1,60 @@
+using SpaThuCung.Models;
+
+namespace SpaThuCung.Services;
+
+/// <summary>
+/// Dịch vụ để hiển thị trên giao diện.
+/// Là class (không phải record) để so sánh theo tham chiếu, giống NhanVienDto.
+/// </summary>
+public sealed class DichVuDto
+{
+    public DichVuDto(int maDv, string tenDv, string? moTa, string trangThai, IReadOnlyList<DongGiaDto> bangGia, bool daCoPhieu)
+    {
+        DaCoPhieu = daCoPhieu;
+        MaDv = maDv;
+        TenDv = tenDv;
+        MoTa = moTa;
+        TrangThai = trangThai;
+        BangGia = bangGia;
+    }
+
+    public int MaDv { get; }
+    public string TenDv { get; }
+    public string? MoTa { get; }
+    public string TrangThai { get; }
+
+    /// <summary>Đã có phiếu dịch vụ dùng dịch vụ này: không được xoá, chỉ chuyển Ngừng cung cấp.</summary>
+    public bool DaCoPhieu { get; }
+
+    /// <summary>Bảng giá, sắp theo loài (Chó trước) rồi cân nặng.</summary>
+    public IReadOnlyList<DongGiaDto> BangGia { get; }
+
+    public bool NgungCungCap => TrangThai == TrangThaiDichVu.NgungCungCap;
+}
+
+/// <summary>Một dòng bảng giá đã lưu.</summary>
+public sealed record DongGiaDto(int MaGia, string Loai, decimal CanNangTu, decimal CanNangDen, decimal Gia, int ThoiLuong);
+
+/// <summary>Một dòng bảng giá gửi lên để lưu. MaGia = 0 là dòng mới.</summary>
+public sealed record DongGiaNhap(int MaGia, string Loai, decimal CanNangTu, decimal CanNangDen, decimal Gia, int ThoiLuong);
+
+/// <summary>
+/// Một dịch vụ cùng bảng giá gửi lên để lưu trong một lần. MaDv = 0 là dịch vụ mới.
+/// MaXoa là mã các dòng giá người dùng đã bấm Xoá.
+/// </summary>
+public sealed record DichVuLuu(int MaDv, string TenDv, string? MoTa, string TrangThai,
+    IReadOnlyList<DongGiaNhap> BangGia, IReadOnlyCollection<int> MaXoa);
+
+/// <summary>Kết quả tra giá một dịch vụ theo loài và cân nặng. Gia/ThoiLuong null: không có khoảng phù hợp, cần báo giá riêng.</summary>
+public sealed record GiaTraCuu(int MaDv, string TenDv, decimal? CanNangTu, decimal? CanNangDen, decimal? Gia, int? ThoiLuong)
+{
+    public bool CoGia => Gia is not null;
+
+    public string KhoangHienThi => CanNangTu is null || CanNangDen is null
+        ? "—"
+        : QuyTacDichVu.Khoang(CanNangTu.Value, CanNangDen.Value);
+
+    public string GiaHienThi => Gia is null ? "Cần báo giá riêng" : QuyTacDichVu.TienHienThi(Gia.Value);
+
+    public string ThoiLuongHienThi => ThoiLuong is null ? "—" : $"{ThoiLuong} phút";
+}

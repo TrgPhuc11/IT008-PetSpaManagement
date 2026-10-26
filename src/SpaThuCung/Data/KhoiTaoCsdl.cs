@@ -7,12 +7,12 @@ using Microsoft.Data.SqlClient;
 namespace SpaThuCung.Data;
 
 /// <summary>
-/// Tự tạo CSDL + bảng + dữ liệu mẫu bằng script SQL nhúng trong assembly.
-/// Script idempotent nên chạy mỗi lần khởi động đều an toàn.
+/// Tự tạo CSDL + bảng + dữ liệu mẫu bằng các script SQL nhúng trong assembly.
+/// Các script chạy theo thứ tự tên (01_, 02_...); script idempotent nên chạy mỗi lần khởi động đều an toàn.
 /// </summary>
 public class KhoiTaoCsdl
 {
-    private const string TenResource = "SpaThuCung.Sql.TaoCsdl";
+    private const string TienToResource = "SpaThuCung.Sql.";
 
     private readonly string _connectionString;
 
@@ -52,17 +52,28 @@ public class KhoiTaoCsdl
         DaXong = true;
     }
 
-    /// <summary>Đọc script nhúng và tách thành các lô theo dòng GO.</summary>
+    /// <summary>Đọc các script nhúng (theo thứ tự tên) và tách thành các lô theo dòng GO.</summary>
     private static List<string> DocCacLo()
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(TenResource)
-            ?? throw new InvalidOperationException($"Không tìm thấy script nhúng '{TenResource}'.");
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        var noiDung = reader.ReadToEnd();
-
-        return Regex.Split(noiDung, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase)
-            .Select(s => s.Trim())
-            .Where(s => s.Length > 0)
+        var assembly = Assembly.GetExecutingAssembly();
+        var tenCacScript = assembly.GetManifestResourceNames()
+            .Where(x => x.StartsWith(TienToResource, StringComparison.Ordinal))
+            .OrderBy(x => x, StringComparer.Ordinal)
             .ToList();
+        if (tenCacScript.Count == 0)
+            throw new InvalidOperationException($"Không tìm thấy script nhúng '{TienToResource}*'.");
+
+        var cacLo = new List<string>();
+        foreach (var ten in tenCacScript)
+        {
+            using var stream = assembly.GetManifestResourceStream(ten)!;
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            var noiDung = reader.ReadToEnd();
+
+            cacLo.AddRange(Regex.Split(noiDung, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase)
+                .Select(s => s.Trim())
+                .Where(s => s.Length > 0));
+        }
+        return cacLo;
     }
 }

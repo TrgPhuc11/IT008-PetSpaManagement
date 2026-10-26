@@ -19,7 +19,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _sp = sp;
 
         // Một ListBox duy nhất: "Quản lý" là nhãn nhóm không chọn được, chỉ có khi là Quản lý.
-        var ds = new List<MucMenu> { new("Trang chủ", LoaiMuc.TrangChu) };
+        var ds = new List<MucMenu>
+        {
+            new("Trang chủ", LoaiMuc.TrangChu),
+            new("Dịch vụ & bảng giá", LoaiMuc.DichVu),
+        };
         if (_phien.LaQuanLy)
         {
             ds.Add(new MucMenu("Quản lý", LoaiMuc.TieuDeNhom));
@@ -57,6 +61,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         object? vm = null;
         if (muc.Loai == LoaiMuc.TrangChu)
             vm = _sp.GetRequiredService<TrangChuViewModel>();
+        else if (muc.Loai == LoaiMuc.DichVu)
+            vm = _sp.GetRequiredService<DichVuViewModel>();
         else if (muc.Loai == LoaiMuc.NhanVien && _phien.LaQuanLy)
             vm = _sp.GetRequiredService<NhanVienViewModel>();
 
