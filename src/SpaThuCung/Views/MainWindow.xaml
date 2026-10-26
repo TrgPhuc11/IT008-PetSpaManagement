@@ -22,6 +22,9 @@
         <DataTemplate DataType="{x:Type vm:NhanVienViewModel}">
             <v:NhanVienView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DichVuViewModel}">
+            <v:DichVuView />
+        </DataTemplate>
 
         <SolidColorBrush x:Key="MauRoChuotMenu" Color="#F9EFE5" />
 

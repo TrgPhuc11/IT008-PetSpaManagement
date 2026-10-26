@@ -3,6 +3,7 @@ namespace SpaThuCung.ViewModels;
 public enum LoaiMuc
 {
     TrangChu,
+    DichVu,
     NhanVien,
 
     /// <summary>Nhãn nhóm (không chọn được).</summary>
