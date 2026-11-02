@@ -5,4 +5,7 @@ public interface IHopThoaiService
 {
     /// <summary>Hỏi Có/Không; true nếu người dùng chọn Có.</summary>
     bool XacNhan(string noiDung, string tieuDe);
+
+    /// <summary>Hộp thoại chọn thư mục; null nếu người dùng huỷ.</summary>
+    string? ChonThuMuc(string tieuDe, string? thuMucBanDau);
 }

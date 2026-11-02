@@ -12,6 +12,8 @@ public class SpaDbContext : DbContext
     public DbSet<NhanVien> NhanVien => Set<NhanVien>();
     public DbSet<DichVu> DichVu => Set<DichVu>();
     public DbSet<BangGia> BangGia => Set<BangGia>();
+    public DbSet<CauHinh> CauHinh => Set<CauHinh>();
+    public DbSet<CaLamViec> CaLamViec => Set<CaLamViec>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,6 +54,30 @@ public class SpaDbContext : DbContext
             e.Property(x => x.Gia).HasColumnName("gia").HasPrecision(12, 0);
             e.Property(x => x.ThoiLuong).HasColumnName("thoi_luong");
             e.HasOne(x => x.DichVu).WithMany(x => x.BangGia).HasForeignKey(x => x.MaDv);
+        });
+
+        modelBuilder.Entity<CauHinh>(e =>
+        {
+            e.ToTable("CauHinh");
+            e.HasKey(x => x.MaCauHinh);
+            e.Property(x => x.MaCauHinh).HasColumnName("ma_cau_hinh").HasMaxLength(50).IsUnicode(false);
+            e.Property(x => x.GiaTri).HasColumnName("gia_tri").HasMaxLength(100).IsRequired();
+            e.Property(x => x.MoTa).HasColumnName("mo_ta").HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<CaLamViec>(e =>
+        {
+            e.ToTable("CaLamViec");
+            e.HasKey(x => x.MaCa);
+            e.Property(x => x.MaCa).HasColumnName("ma_ca").ValueGeneratedOnAdd();
+            e.Property(x => x.TenCa).HasColumnName("ten_ca").HasMaxLength(30).IsRequired();
+            e.Property(x => x.GioBatDau).HasColumnName("gio_bat_dau").HasColumnType("time(0)");
+            e.Property(x => x.GioKetThuc).HasColumnName("gio_ket_thuc").HasColumnType("time(0)");
+            e.Property(x => x.PhutVuotChoPhep).HasColumnName("phut_vuot_cho_phep");
+            e.Property(x => x.SoLeTan).HasColumnName("so_le_tan");
+            e.Property(x => x.SoGroomer).HasColumnName("so_groomer");
+            e.Property(x => x.DangSuDung).HasColumnName("dang_su_dung");
+            e.HasIndex(x => x.TenCa).IsUnique();
         });
     }
 }

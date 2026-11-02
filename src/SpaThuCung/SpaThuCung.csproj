@@ -30,6 +30,7 @@
     <!-- Script tạo CSDL dùng chung với file chạy tay trong SSMS; chạy theo thứ tự tên -->
     <EmbeddedResource Include="..\..\Database\01_TaoCSDL_NhanVien.sql" LogicalName="SpaThuCung.Sql.01_TaoCSDL_NhanVien" />
     <EmbeddedResource Include="..\..\Database\02_TaoBang_DichVu_BangGia.sql" LogicalName="SpaThuCung.Sql.02_TaoBang_DichVu_BangGia" />
+    <EmbeddedResource Include="..\..\Database\03_TaoBang_CauHinh_CaLamViec.sql" LogicalName="SpaThuCung.Sql.03_TaoBang_CauHinh_CaLamViec" />
   </ItemGroup>
 
 </Project>
