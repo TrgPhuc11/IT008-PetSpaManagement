@@ -28,6 +28,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             ds.Add(new MucMenu("Quản lý", LoaiMuc.TieuDeNhom));
             ds.Add(new MucMenu("Quản lý nhân viên", LoaiMuc.NhanVien));
+            ds.Add(new MucMenu("Cấu hình hệ thống", LoaiMuc.CauHinh));
         }
         DanhSachMenu = ds;
 
@@ -65,6 +66,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             vm = _sp.GetRequiredService<DichVuViewModel>();
         else if (muc.Loai == LoaiMuc.NhanVien && _phien.LaQuanLy)
             vm = _sp.GetRequiredService<NhanVienViewModel>();
+        else if (muc.Loai == LoaiMuc.CauHinh && _phien.LaQuanLy)
+            vm = _sp.GetRequiredService<CauHinhViewModel>();
 
         if (vm is null) return;
 
