@@ -5,6 +5,7 @@ public enum LoaiMuc
     TrangChu,
     DichVu,
     NhanVien,
+    LichLamViec,
     CauHinh,
 
     /// <summary>Nhãn nhóm (không chọn được).</summary>

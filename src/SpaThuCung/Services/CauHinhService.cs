@@ -235,6 +235,42 @@ public class CauHinhService : ICauHinhService
         }
     }
 
+    public async Task<KetQua> XoaCaAsync(int maCa)
+    {
+        if (!_phien.LaQuanLy) return KetQua.Loi(LoiQuyen);
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var tim = await db.CaLamViec.FirstOrDefaultAsync(x => x.MaCa == maCa);
+            if (tim is null) return KetQua.Loi(LoiKhongTimCa);
+
+            // FR14, BR09: ca đã có lịch làm việc không xoá được, chỉ ngừng sử dụng.
+            if (await db.LichLamViec.AnyAsync(x => x.MaCa == maCa))
+                return KetQua.Loi($"{tim.TenCa} đã có lịch làm việc nên không xoá được, chỉ ngừng sử dụng.");
+
+            if (tim.DangSuDung && !await db.CaLamViec.AnyAsync(x => x.MaCa != maCa && x.DangSuDung))
+                return KetQua.Loi("Phải còn ít nhất một ca đang sử dụng.");
+
+            db.CaLamViec.Remove(tim);
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Vừa có người xếp lịch vào ca này: khoá ngoại chặn lại.
+                return KetQua.Loi($"Không xoá được {tim.TenCa}: ca vừa được xếp lịch, hãy tải lại.");
+            }
+
+            return KetQua.Ok($"Đã xoá {tim.TenCa}.");
+        }
+        catch (Exception)
+        {
+            return KetQua.Loi(LoiKetNoi);
+        }
+    }
+
     public async Task<KetQua<CaLamViecDto?>> XacDinhCaAsync(TimeSpan gioHen)
     {
         var kq = await LayDanhSachCaAsync();

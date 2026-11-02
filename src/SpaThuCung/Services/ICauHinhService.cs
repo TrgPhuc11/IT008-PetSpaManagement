@@ -30,6 +30,9 @@ public interface ICauHinhService
     /// <summary>Ngừng sử dụng hoặc dùng lại một ca. Luôn phải còn ít nhất một ca đang sử dụng.</summary>
     Task<KetQua> DoiTrangThaiCaAsync(int maCa, bool dangSuDung);
 
+    /// <summary>Xoá ca chưa có lịch làm việc nào (ca đã có lịch chỉ ngừng sử dụng được). Luôn phải còn ít nhất một ca đang sử dụng.</summary>
+    Task<KetQua> XoaCaAsync(int maCa);
+
     /// <summary>Ca đang sử dụng chứa giờ hẹn (giờ bắt đầu ≤ giờ &lt; giờ kết thúc); DuLieu = null nếu ngoài mọi ca.</summary>
     Task<KetQua<CaLamViecDto?>> XacDinhCaAsync(TimeSpan gioHen);
 }

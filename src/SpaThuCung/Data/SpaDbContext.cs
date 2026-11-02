@@ -14,6 +14,7 @@ public class SpaDbContext : DbContext
     public DbSet<BangGia> BangGia => Set<BangGia>();
     public DbSet<CauHinh> CauHinh => Set<CauHinh>();
     public DbSet<CaLamViec> CaLamViec => Set<CaLamViec>();
+    public DbSet<LichLamViec> LichLamViec => Set<LichLamViec>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,6 +79,20 @@ public class SpaDbContext : DbContext
             e.Property(x => x.SoGroomer).HasColumnName("so_groomer");
             e.Property(x => x.DangSuDung).HasColumnName("dang_su_dung");
             e.HasIndex(x => x.TenCa).IsUnique();
+        });
+
+        modelBuilder.Entity<LichLamViec>(e =>
+        {
+            e.ToTable("LichLamViec");
+            e.HasKey(x => x.MaLich);
+            e.Property(x => x.MaLich).HasColumnName("ma_lich").ValueGeneratedOnAdd();
+            e.Property(x => x.MaNv).HasColumnName("ma_nv");
+            e.Property(x => x.Ngay).HasColumnName("ngay").HasColumnType("date");
+            e.Property(x => x.MaCa).HasColumnName("ma_ca");
+            e.Property(x => x.ViTri).HasColumnName("vi_tri").HasMaxLength(20).IsRequired();
+            e.HasIndex(x => new { x.MaNv, x.Ngay }).IsUnique();
+            e.HasOne(x => x.NhanVien).WithMany().HasForeignKey(x => x.MaNv);
+            e.HasOne(x => x.CaLamViec).WithMany().HasForeignKey(x => x.MaCa);
         });
     }
 }

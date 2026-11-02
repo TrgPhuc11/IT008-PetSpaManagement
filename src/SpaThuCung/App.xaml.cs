@@ -93,6 +93,7 @@ public partial class App : Application
         sc.AddTransient<TrangChuViewModel>();
         sc.AddTransient<NhanVienViewModel>();
         sc.AddTransient<DichVuViewModel>();
+        sc.AddTransient<LichLamViecViewModel>();
         sc.AddTransient<CauHinhViewModel>();
         sc.AddTransient<DoiMatKhauViewModel>();
         sc.AddTransient<LoginWindow>();
