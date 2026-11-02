@@ -48,6 +48,7 @@ public partial class CauHinhViewModel : ObservableObject, ICoTaiDuLieu
     [NotifyCanExecuteChangedFor(nameof(ThemCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(SuaCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(DoiTrangThaiCaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(LuuCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(HuyCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(LuuThongSoCommand))]
@@ -68,6 +69,7 @@ public partial class CauHinhViewModel : ObservableObject, ICoTaiDuLieu
     [NotifyCanExecuteChangedFor(nameof(ThemCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(SuaCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(DoiTrangThaiCaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaCaCommand))]
     private bool _daTaiCa;
 
     private async Task<bool> TaiCaAsync()
@@ -104,6 +106,7 @@ public partial class CauHinhViewModel : ObservableObject, ICoTaiDuLieu
     [NotifyCanExecuteChangedFor(nameof(ThemCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(SuaCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(DoiTrangThaiCaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(XoaCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(LuuCaCommand))]
     [NotifyCanExecuteChangedFor(nameof(HuyCaCommand))]
     private int? _maCaDangSua;
@@ -258,6 +261,29 @@ public partial class CauHinhViewModel : ObservableObject, ICoTaiDuLieu
         try
         {
             var kq = await _cauHinh.DoiTrangThaiCaAsync(muc.MaCa, !ngung);
+            if (!kq.ThanhCong)
+            {
+                HienThongBao(kq.ThongBao, LoaiThongBao.Loi);
+                return;
+            }
+            if (await TaiCaAsync()) HienThongBao(kq.ThongBao, LoaiThongBao.ThanhCong);
+        }
+        finally
+        {
+            DangLuu = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CoTheBatDauSuaCaMuc))]
+    private async Task XoaCa(CaLamViecMucViewModel? muc)
+    {
+        if (muc is null) return;
+        if (!_hopThoai.XacNhan($"Xoá {muc.TenCa} ({muc.GioHienThi})? Chỉ xoá được ca chưa có lịch làm việc nào.", "Cấu hình hệ thống")) return;
+
+        DangLuu = true;
+        try
+        {
+            var kq = await _cauHinh.XoaCaAsync(muc.MaCa);
             if (!kq.ThanhCong)
             {
                 HienThongBao(kq.ThongBao, LoaiThongBao.Loi);

@@ -25,6 +25,9 @@
         <DataTemplate DataType="{x:Type vm:DichVuViewModel}">
             <v:DichVuView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LichLamViecViewModel}">
+            <v:LichLamViecView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:CauHinhViewModel}">
             <v:CauHinhView />
         </DataTemplate>

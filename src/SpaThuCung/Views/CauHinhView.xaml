@@ -176,7 +176,7 @@
                                         <ColumnDefinition Width="60" />
                                         <ColumnDefinition Width="70" />
                                         <ColumnDefinition Width="120" />
-                                        <ColumnDefinition Width="210" />
+                                        <ColumnDefinition Width="280" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Tên ca" Style="{StaticResource TieuDeCot}" />
                                     <TextBlock Grid.Column="1" Text="Giờ" Style="{StaticResource TieuDeCot}" />
@@ -201,7 +201,7 @@
                                                     <ColumnDefinition Width="60" />
                                                     <ColumnDefinition Width="70" />
                                                     <ColumnDefinition Width="120" />
-                                                    <ColumnDefinition Width="210" />
+                                                    <ColumnDefinition Width="280" />
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="{Binding TenCa}" FontWeight="SemiBold" Style="{StaticResource ChuO}" />
                                                 <TextBlock Grid.Column="1" Text="{Binding GioHienThi}" Style="{StaticResource ChuO}" />
@@ -217,9 +217,14 @@
                                                                Style="{StaticResource NutPhu}"
                                                                Command="{Binding DataContext.SuaCaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                CommandParameter="{Binding}" />
-                                                    <ui:Button Content="{Binding NutTrangThai}" Height="32" MinWidth="120"
+                                                    <ui:Button Content="{Binding NutTrangThai}" Height="32" MinWidth="120" Margin="0,0,8,0"
                                                                Style="{StaticResource NutPhu}"
                                                                Command="{Binding DataContext.DoiTrangThaiCaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                               CommandParameter="{Binding}" />
+                                                    <ui:Button Content="Xoá" Height="32" MinWidth="56"
+                                                               Style="{StaticResource NutPhu}"
+                                                               ToolTip="Chỉ xoá được ca chưa có lịch làm việc"
+                                                               Command="{Binding DataContext.XoaCaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                CommandParameter="{Binding}" />
                                                 </StackPanel>
                                             </Grid>
@@ -271,7 +276,7 @@
 
                                 <TextBlock Text="{Binding XemTruocCa}" Style="{StaticResource ChuPhu}" Margin="0,0,0,4" />
                                 <TextBlock Style="{StaticResource ChuPhu}"
-                                           Text="Các ca đang sử dụng không được chồng giờ nhau. Ca ngừng sử dụng không được chọn khi xếp lịch." />
+                                           Text="Các ca đang sử dụng không được chồng giờ nhau. Ca ngừng sử dụng không được chọn khi xếp lịch. Ca đã có lịch làm việc không xoá được, chỉ ngừng sử dụng." />
                                 <TextBlock Text="{Binding LoiCa}" Style="{StaticResource ChuLoi}"
                                            Visibility="{Binding CoLoiCa, Converter={StaticResource BoolToVis}}" />
 
