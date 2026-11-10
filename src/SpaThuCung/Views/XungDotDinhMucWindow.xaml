@@ -1,0 +1,104 @@
+<ui:FluentWindow x:Class="SpaThuCung.Views.XungDotDinhMucWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="Vướng định mức ca"
+                 Width="560" SizeToContent="Height" MaxHeight="680"
+                 ResizeMode="NoResize"
+                 WindowStartupLocation="CenterOwner"
+                 ShowInTaskbar="False"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="None"
+                 Background="{StaticResource MauNen}"
+                 Foreground="{StaticResource MauChu}"
+                 FontFamily="Segoe UI">
+
+    <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </ui:FluentWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Vướng định mức ca" ShowMinimize="False" ShowMaximize="False" CanMaximize="False" />
+
+        <Grid Grid.Row="1" Margin="24,8,24,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{Binding TieuDe}" FontSize="20" FontWeight="SemiBold"
+                       TextWrapping="Wrap" Foreground="{StaticResource MauChu}" />
+            <TextBlock Grid.Row="1" Text="{Binding LoiDan}" Margin="0,6,0,12" FontSize="14"
+                       TextWrapping="Wrap" Foreground="{StaticResource MauChuPhu}" />
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding CacO}" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,8" Padding="12" CornerRadius="6"
+                                    Background="{StaticResource MauThe}"
+                                    BorderBrush="{StaticResource MauVienBang}" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding TieuDe}" FontWeight="SemiBold" FontSize="14"
+                                               TextWrapping="Wrap" Foreground="{StaticResource MauChu}" />
+                                    <TextBlock Text="{Binding NoiDung}" Margin="0,4,0,8" FontSize="13"
+                                               TextWrapping="Wrap" Foreground="{StaticResource MauChuPhu}" />
+                                    <TextBlock Text="Xử lý" FontSize="12" Margin="0,0,0,4"
+                                               Foreground="{StaticResource MauChuPhu}" />
+                                    <ComboBox HorizontalAlignment="Stretch"
+                                              ItemsSource="{Binding CacLuaChon}"
+                                              SelectedItem="{Binding LuaChon, Mode=TwoWay}"
+                                              DisplayMemberPath="HienThi" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Border Grid.Row="3" Margin="0,4,0,0" Padding="12,8" CornerRadius="4"
+                    Background="{StaticResource MauOkNen}"
+                    Visibility="{Binding CoOHopLe, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding ChuOHopLe}" FontSize="13" TextWrapping="Wrap"
+                           Foreground="{StaticResource MauOkChu}" />
+            </Border>
+
+            <TextBlock Grid.Row="4" Margin="0,12,0,0" FontSize="12" TextWrapping="Wrap"
+                       Foreground="{StaticResource MauChuPhu}"
+                       Text="Người bị thay sẽ thành trống ngày đó. Có thể bấm Hoàn tác nếu đổi nhầm." />
+
+            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <ui:Button Content="Huỷ" Height="36" MinWidth="80" Margin="0,0,8,0"
+                           IsCancel="True"
+                           Background="{StaticResource MauNutPhu}"
+                           BorderBrush="{StaticResource MauVien}"
+                           Foreground="{StaticResource MauChu}"
+                           MouseOverBackground="{StaticResource MauChon}"
+                           MouseOverBorderBrush="{StaticResource MauVien}"
+                           PressedBackground="{StaticResource MauChon}"
+                           PressedForeground="{StaticResource MauChu}"
+                           Command="{Binding HuyCommand}" />
+                <ui:Button Content="{Binding ChuXacNhan}" Height="36" MinWidth="140"
+                           IsDefault="True"
+                           Appearance="Primary"
+                           Background="{StaticResource MauNhan}"
+                           BorderBrush="{StaticResource MauNhan}"
+                           Foreground="White"
+                           MouseOverBackground="{StaticResource MauNhanDam}"
+                           MouseOverBorderBrush="{StaticResource MauNhanDam}"
+                           PressedBackground="{StaticResource MauNhanDam}"
+                           PressedForeground="White"
+                           Command="{Binding XacNhanCommand}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

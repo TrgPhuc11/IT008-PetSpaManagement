@@ -1,14 +1,21 @@
 <UserControl x:Class="SpaThuCung.Views.LichLamViecView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:SpaThuCung.ViewModels">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
-        <!-- Màu thẻ theo vị trí (giống mẫu giao diện) -->
+        <!-- Màu theo mẫu giao diện -->
         <SolidColorBrush x:Key="MauLeTanNen" Color="#E8EEF6" />
+        <SolidColorBrush x:Key="MauLeTanVien" Color="#4A6FA0" />
         <SolidColorBrush x:Key="MauGroomerNen" Color="#E6F0DA" />
+        <SolidColorBrush x:Key="MauGroomerVien" Color="#5A8A3A" />
+        <SolidColorBrush x:Key="MauHangThieu" Color="#FFFBF4" />
+        <SolidColorBrush x:Key="MauThanhChon" Color="#2B2520" />
+        <SolidColorBrush x:Key="MauChuThanhChon" Color="#FFFDF9" />
+        <SolidColorBrush x:Key="MauChipThieuVien" Color="#F3DE9C" />
 
         <!-- Nút chính (màu nhấn) và nút phụ, cùng kiểu với các màn khác -->
         <Style x:Key="NutChinh" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
@@ -33,30 +40,18 @@
             <Setter Property="PressedForeground" Value="{StaticResource MauChu}" />
         </Style>
 
-        <!-- Nút × nhỏ trên thẻ tên -->
-        <Style x:Key="NutXoaThe" TargetType="Button">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Height" Value="20" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Nen" Background="Transparent" CornerRadius="3">
-                            <TextBlock Text="×" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{TemplateBinding Foreground}" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Nen" Property="Background" Value="#33000000" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+        <!-- Nút chế độ xem (Tuần | Tháng | Khoảng ngày): Tag = đang chọn -->
+        <Style x:Key="NutCheDo" TargetType="ui:Button" BasedOn="{StaticResource NutPhu}">
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource MauChon}" />
+                    <Setter Property="Foreground" Value="{StaticResource MauNhanDam}" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="MouseOverBackground" Value="{StaticResource MauChon}" />
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="The" TargetType="Border">
@@ -66,15 +61,140 @@
             <Setter Property="CornerRadius" Value="8" />
         </Style>
 
-        <Style x:Key="NhanO" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Margin" Value="0,8,0,6" />
-            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
-        </Style>
         <Style x:Key="ChuPhu" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+        </Style>
+
+        <!-- Chip trạng thái ca ở hàng "Ca còn thiếu" -->
+        <Style x:Key="ChipCa" TargetType="Button">
+            <Setter Property="Margin" Value="2,1" />
+            <Setter Property="Cursor" Value="Arrow" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="ToolTip" Value="{Binding GoiY}" />
+            <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding GoiY}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Vo" CornerRadius="3" Padding="4,3" BorderThickness="1"
+                                BorderBrush="Transparent" Background="Transparent">
+                            <TextBlock x:Name="Chu" Text="{Binding Text}" FontSize="10.5" TextTrimming="CharacterEllipsis"
+                                       Foreground="{StaticResource MauOkChu}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Rong}" Value="False">
+                                <Setter TargetName="Vo" Property="Padding" Value="0,2" />
+                                <Setter TargetName="Chu" Property="HorizontalAlignment" Value="Center" />
+                                <Setter TargetName="Chu" Property="FontSize" Value="10" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Loai}" Value="Thieu">
+                                <Setter TargetName="Vo" Property="Background" Value="{StaticResource MauCanhBaoNen}" />
+                                <Setter TargetName="Vo" Property="BorderBrush" Value="{StaticResource MauChipThieuVien}" />
+                                <Setter TargetName="Chu" Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
+                                <Setter TargetName="Chu" Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Cursor" Value="Hand" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Loai}" Value="Thua">
+                                <Setter TargetName="Vo" Property="Background" Value="{StaticResource MauLoiNen}" />
+                                <Setter TargetName="Chu" Property="Foreground" Value="{StaticResource MauLoiChu}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding DangChon}" Value="True">
+                                <Setter TargetName="Vo" Property="BorderBrush" Value="{StaticResource MauNhan}" />
+                                <Setter TargetName="Vo" Property="BorderThickness" Value="2" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Ô lịch: khối màu theo vị trí, viền trái đậm; chọn = viền nhấn; gợi ý = viền đứt nét -->
+        <Style x:Key="OLich" TargetType="Button">
+            <Setter Property="Width" Value="{Binding ChieuRongO}" />
+            <Setter Property="Height" Value="{Binding ChieuCaoO}" />
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding MoTaTruyCap}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Ngoai" CornerRadius="4" BorderThickness="2" BorderBrush="Transparent">
+                            <Grid>
+                                <Border CornerRadius="2" Background="{Binding Nen}"
+                                        BorderBrush="{Binding VienTrai}" BorderThickness="3,0,0,0" />
+                                <Rectangle x:Name="GoiYVien" Visibility="Collapsed" RadiusX="3" RadiusY="3"
+                                           Stroke="{StaticResource MauNhan}" StrokeThickness="1" StrokeDashArray="3 2" />
+                                <Rectangle x:Name="PhuChon" Visibility="Collapsed" Fill="#14A9481F" />
+                                <StackPanel x:Name="Chu" VerticalAlignment="Center" Margin="9,0,4,0">
+                                    <TextBlock Text="{Binding Dong1}" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{Binding Chu}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock x:Name="Dong2" Text="{Binding Dong2}" FontSize="10.5" Opacity="0.85"
+                                               Foreground="{Binding Chu}" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <TextBlock x:Name="Cong" Text="{Binding ChuCong}" FontSize="15" Opacity="0"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{StaticResource MauNhan}"
+                                           Visibility="{Binding HienCong, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Rong}" Value="False">
+                                <Setter TargetName="Chu" Property="HorizontalAlignment" Value="Center" />
+                                <Setter TargetName="Chu" Property="Margin" Value="3,0,0,0" />
+                                <!-- Ô thu gọn chỉ cao 30px: bỏ dòng 2 để ký hiệu ca nằm giữa ô -->
+                                <Setter TargetName="Dong2" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding DaQua}" Value="True">
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </DataTrigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Cong" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding GoiY}" Value="True">
+                                <Setter TargetName="GoiYVien" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="Cong" Property="Opacity" Value="1" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding DaChon}" Value="True">
+                                <Setter TargetName="Ngoai" Property="BorderBrush" Value="{StaticResource MauNhan}" />
+                                <Setter TargetName="PhuChon" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="Cong" Property="Opacity" Value="1" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút tên nhân viên: bấm để chọn mọi ô trống chưa qua -->
+        <Style x:Key="NutTenNhanVien" TargetType="Button">
+            <Setter Property="Width" Value="180" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding MoTaTruyCap}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Nen" Background="Transparent" Padding="10,4" CornerRadius="4">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding HoTen}" FontSize="14" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis" Foreground="{StaticResource MauChu}" />
+                                <TextBlock Text="{Binding PhuDe}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                           Foreground="{StaticResource MauChuPhu}" />
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Nen" Property="Background" Value="{StaticResource MauChon}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -83,58 +203,64 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Lịch làm việc" FontSize="24" FontWeight="SemiBold"
+        <TextBlock Grid.Row="0" Text="Lịch làm việc" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
                    Foreground="{StaticResource MauChu}" />
-        <TextBlock Grid.Row="1" Margin="0,4,0,12" FontSize="14" TextWrapping="Wrap"
-                   Foreground="{StaticResource MauChuPhu}"
-                   Text="Mỗi nhân viên tối đa một ca, một vị trí mỗi ngày. Số Lễ tân và Groomer của mỗi ca lấy theo Cấu hình hệ thống (mặc định 1 Lễ tân, 2 Groomer). Ngày đã qua không sửa được." />
 
-        <!-- Thanh tuần -->
-        <DockPanel Grid.Row="2" Margin="0,0,0,12" LastChildFill="False">
+        <!-- Thanh công cụ -->
+        <DockPanel Grid.Row="1" Margin="0,0,0,12" LastChildFill="False">
             <ui:Button DockPanel.Dock="Left" Content="‹" Width="36" Padding="0" Style="{StaticResource NutPhu}"
-                       ToolTip="Tuần trước" AutomationProperties.Name="Tuần trước"
-                       Command="{Binding TuanTruocCommand}" />
-            <TextBlock DockPanel.Dock="Left" Text="{Binding NhanTuan}" FontSize="15" FontWeight="SemiBold" Margin="12,0"
-                       VerticalAlignment="Center" Foreground="{StaticResource MauChu}" />
-            <ui:Button DockPanel.Dock="Left" Content="›" Width="36" Padding="0" Style="{StaticResource NutPhu}"
-                       ToolTip="Tuần sau" AutomationProperties.Name="Tuần sau"
-                       Command="{Binding TuanSauCommand}" />
-            <ui:Button DockPanel.Dock="Left" Content="Tuần này" Margin="8,0,0,0" Style="{StaticResource NutPhu}"
-                       Command="{Binding TuanNayCommand}" />
+                       ToolTip="Lùi một kỳ" AutomationProperties.Name="Lùi một kỳ"
+                       Command="{Binding KyTruocCommand}" />
 
-            <Border DockPanel.Dock="Right" Padding="10,6" CornerRadius="4" VerticalAlignment="Center">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding DuDinhMuc}" Value="True">
-                                <Setter Property="Background" Value="{StaticResource MauOkNen}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <TextBlock Text="{Binding TomTatDinhMuc}" FontSize="13">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding DuDinhMuc}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource MauOkChu}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Border>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding NhanKy}" FontSize="15" FontWeight="SemiBold" Margin="12,0"
+                       VerticalAlignment="Center" Foreground="{StaticResource MauChu}"
+                       Visibility="{Binding KhongPhaiKhoang, Converter={StaticResource BoolToVis}}" />
+
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="12,0" VerticalAlignment="Center"
+                        Visibility="{Binding LaCheDoKhoang, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Từ" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"
+                           Foreground="{StaticResource MauChu}" />
+                <DatePicker Width="140" SelectedDate="{Binding TuNgayChon, Mode=TwoWay}"
+                            AutomationProperties.Name="Từ ngày" />
+                <TextBlock Text="đến" FontSize="13" VerticalAlignment="Center" Margin="10,0,6,0"
+                           Foreground="{StaticResource MauChu}" />
+                <DatePicker Width="140" SelectedDate="{Binding DenNgayChon, Mode=TwoWay}"
+                            AutomationProperties.Name="Đến ngày" />
+            </StackPanel>
+
+            <ui:Button DockPanel.Dock="Left" Content="›" Width="36" Padding="0" Style="{StaticResource NutPhu}"
+                       ToolTip="Tiến một kỳ" AutomationProperties.Name="Tiến một kỳ"
+                       Command="{Binding KySauCommand}" />
+            <ui:Button DockPanel.Dock="Left" Content="Hôm nay" Margin="8,0,0,0" Style="{StaticResource NutPhu}"
+                       Command="{Binding HomNayCommand}" />
+
+            <!-- Nhóm chế độ xem (ngoài cùng bên phải) -->
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
+                <ui:Button Content="Tuần" Style="{StaticResource NutCheDo}" Tag="{Binding LaCheDoTuan}"
+                           Command="{Binding ChonCheDoTuanCommand}" />
+                <ui:Button Content="Tháng" Style="{StaticResource NutCheDo}" Tag="{Binding LaCheDoThang}"
+                           Command="{Binding ChonCheDoThangCommand}" />
+                <ui:Button Content="Khoảng ngày" Style="{StaticResource NutCheDo}" Tag="{Binding LaCheDoKhoang}"
+                           Command="{Binding ChonCheDoKhoangCommand}" />
+            </StackPanel>
+
+            <ui:Button DockPanel.Dock="Right" Content="Lặp lịch tuần" Margin="8,0,0,0" Style="{StaticResource NutPhu}"
+                       ToolTipService.ShowOnDisabled="True"
+                       ToolTip="Chép lịch tuần đang xem sang các tuần sau (chỉ ở chế độ Tuần)"
+                       Command="{Binding LapLichTuanCommand}" />
+            <ui:Button DockPanel.Dock="Right" Content="↶ Hoàn tác" Margin="8,0,0,0" Style="{StaticResource NutPhu}"
+                       ToolTipService.ShowOnDisabled="True"
+                       ToolTip="{Binding GoiYHoanTac}"
+                       Command="{Binding HoanTacCommand}" />
         </DockPanel>
 
         <!-- Hộp thông báo: màu đổi theo LoaiThongBao (mặc định là lỗi) -->
-        <Border Grid.Row="3" Margin="0,0,0,12" Padding="12,8" CornerRadius="4"
+        <Border Grid.Row="2" Margin="0,0,0,12" Padding="12,8" CornerRadius="4"
                 Visibility="{Binding CoThongBao, Converter={StaticResource BoolToVis}}">
             <Border.Style>
                 <Style TargetType="Border">
@@ -166,247 +292,198 @@
             </TextBlock>
         </Border>
 
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="260" />
-            </Grid.ColumnDefinitions>
-
-            <!-- ================= Lưới tuần ================= -->
-            <Border Grid.Column="0" Style="{StaticResource The}" Padding="6">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <StackPanel MinWidth="760">
-                        <!-- Tiêu đề cột -->
-                        <Grid MinHeight="44">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="110" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Ca" FontSize="13" FontWeight="SemiBold" Padding="8,0"
-                                       VerticalAlignment="Center" Foreground="{StaticResource MauChuPhu}" />
-                            <ItemsControl Grid.Column="1" ItemsSource="{Binding CacCotNgay}" Focusable="False">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Rows="1" Columns="7" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="2" Padding="4" CornerRadius="4">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="Transparent" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding LaHomNay}" Value="True">
-                                                            <Setter Property="Background" Value="{StaticResource MauChon}" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <StackPanel HorizontalAlignment="Center">
-                                                <TextBlock Text="{Binding Thu}" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding LaHomNay}" Value="True">
-                                                                    <Setter Property="Foreground" Value="{StaticResource MauNhan}" />
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding DaQua}" Value="True">
-                                                                    <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBlock Text="{Binding NgayNgan}" FontSize="12" HorizontalAlignment="Center"
-                                                           Foreground="{StaticResource MauChuPhu}" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
-                        <Border Height="1" Background="{StaticResource MauVienBang}" />
-
-                        <TextBlock Margin="8,16" Style="{StaticResource ChuPhu}" FontSize="13"
-                                   Text="Chưa có ca nào đang sử dụng. Thêm ca ở màn Cấu hình hệ thống."
-                                   Visibility="{Binding KhongCoCa, Converter={StaticResource BoolToVis}}" />
-
-                        <!-- Các hàng ca -->
-                        <ItemsControl ItemsSource="{Binding CacHangCa}" Focusable="False">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel>
-                                        <Grid MinHeight="96">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="110" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Margin="8,8,4,8">
-                                                <TextBlock Text="{Binding TenCa}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"
-                                                           Foreground="{StaticResource MauChu}" />
-                                                <TextBlock Text="{Binding GioHienThi}" Style="{StaticResource ChuPhu}" />
-                                                <TextBlock Text="Ngừng sử dụng" Style="{StaticResource ChuPhu}" FontStyle="Italic"
-                                                           Visibility="{Binding NgungSuDung, Converter={StaticResource BoolToVis}}" />
-                                            </StackPanel>
-
-                                            <ItemsControl Grid.Column="1" ItemsSource="{Binding CacO}" Focusable="False">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <UniformGrid Rows="1" Columns="7" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Margin="2,4" Padding="4" CornerRadius="4">
-                                                            <Border.Style>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="Background" Value="Transparent" />
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding DaQua}" Value="True">
-                                                                            <Setter Property="Opacity" Value="0.6" />
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Border.Style>
-                                                            <StackPanel>
-                                                                <ItemsControl ItemsSource="{Binding CacThe}" Focusable="False">
-                                                                    <ItemsControl.ItemTemplate>
-                                                                        <DataTemplate>
-                                                                            <Border Margin="0,0,0,3" Padding="6,2,2,2" CornerRadius="4"
-                                                                                    ToolTip="{Binding ChuThich}">
-                                                                                <Border.Style>
-                                                                                    <Style TargetType="Border">
-                                                                                        <Setter Property="Background" Value="{StaticResource MauGroomerNen}" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding LaLeTan}" Value="True">
-                                                                                                <Setter Property="Background" Value="{StaticResource MauLeTanNen}" />
-                                                                                            </DataTrigger>
-                                                                                            <DataTrigger Binding="{Binding DaNghiViec}" Value="True">
-                                                                                                <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </Border.Style>
-                                                                                <DockPanel>
-                                                                                    <Button DockPanel.Dock="Right" Style="{StaticResource NutXoaThe}"
-                                                                                            AutomationProperties.Name="{Binding NhanNutXoa}"
-                                                                                            ToolTip="{Binding NhanNutXoa}"
-                                                                                            Visibility="{Binding XoaDuoc, Converter={StaticResource BoolToVis}}"
-                                                                                            Command="{Binding DataContext.XoaLichCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                            CommandParameter="{Binding}" />
-                                                                                    <TextBlock Text="{Binding TenHienThi}" FontSize="12" VerticalAlignment="Center"
-                                                                                               TextTrimming="CharacterEllipsis" Foreground="{StaticResource MauChu}" />
-                                                                                </DockPanel>
-                                                                            </Border>
-                                                                        </DataTemplate>
-                                                                    </ItemsControl.ItemTemplate>
-                                                                </ItemsControl>
-
-                                                                <Border Padding="4,1" CornerRadius="3" HorizontalAlignment="Left"
-                                                                        ToolTip="{Binding DinhMucChiTiet}">
-                                                                    <Border.Style>
-                                                                        <Style TargetType="Border">
-                                                                            <Setter Property="Background" Value="Transparent" />
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding CanCanhBao}" Value="True">
-                                                                                    <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </Border.Style>
-                                                                    <TextBlock Text="{Binding DinhMucHienThi}" FontSize="11">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="TextBlock">
-                                                                                <Setter Property="Foreground" Value="{StaticResource MauOkChu}" />
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding LechDinhMuc}" Value="True">
-                                                                                        <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
-                                                                                    </DataTrigger>
-                                                                                    <DataTrigger Binding="{Binding CanCanhBao}" Value="True">
-                                                                                        <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                    </TextBlock>
-                                                                </Border>
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </Grid>
-                                        <Border Height="1" Background="{StaticResource MauVienBang}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </ScrollViewer>
-            </Border>
-
-            <!-- ================= Khung xếp lịch nhiều ngày ================= -->
-            <Border Grid.Column="2" Style="{StaticResource The}" Padding="14">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel>
-                        <TextBlock Text="Xếp lịch nhiều ngày" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{StaticResource MauChu}" />
-
-                        <TextBlock Text="Nhân viên" Style="{StaticResource NhanO}" />
-                        <ComboBox HorizontalAlignment="Stretch"
-                                  ItemsSource="{Binding DanhSachNhanVien}"
-                                  SelectedItem="{Binding NhanVienChon, Mode=TwoWay}"
-                                  DisplayMemberPath="HoTen" />
-
-                        <TextBlock Text="Ca" Style="{StaticResource NhanO}" />
-                        <ComboBox HorizontalAlignment="Stretch"
-                                  ItemsSource="{Binding DanhSachCa}"
-                                  SelectedItem="{Binding CaChon, Mode=TwoWay}"
-                                  DisplayMemberPath="TenCa" />
-
-                        <TextBlock Text="Vị trí" Style="{StaticResource NhanO}" />
-                        <ComboBox HorizontalAlignment="Stretch"
-                                  ItemsSource="{Binding DanhSachViTri}"
-                                  SelectedItem="{Binding ViTriChon, Mode=TwoWay}" />
-
-                        <TextBlock Text="Các ngày trong tuần" Style="{StaticResource NhanO}" />
-                        <ItemsControl ItemsSource="{Binding CacNgayChon}" Focusable="False">
+        <!-- ================= Lưới ================= -->
+        <Border Grid.Row="3" Style="{StaticResource The}" Padding="6">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Hàng tiêu đề ngày (không bấm được) -->
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Width="180" Text="Nhân viên" FontSize="13" FontWeight="SemiBold" Padding="10,0"
+                                   VerticalAlignment="Center" Foreground="{StaticResource MauChuPhu}" />
+                        <ItemsControl ItemsSource="{Binding CacCotNgay}" Focusable="False">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <UniformGrid Columns="4" />
+                                    <StackPanel Orientation="Horizontal" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox Content="{Binding Thu}" MinWidth="0" Margin="0,0,0,4"
-                                              ToolTip="{Binding ChuThich}"
-                                              IsEnabled="{Binding CoTheChon}"
-                                              IsChecked="{Binding DuocChon, Mode=TwoWay}" />
+                                    <Border Width="{Binding ChieuRongCot}" Padding="0,6" CornerRadius="4,4,0,0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding LaHomNay}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource MauChon}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding Thu}" HorizontalAlignment="Center" FontSize="12" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding DaQua}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding LaHomNay}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource MauNhan}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding NgayText}" HorizontalAlignment="Center" FontSize="11">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LaHomNay}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource MauNhan}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-
-                        <TextBlock Margin="0,8,0,12" Style="{StaticResource ChuPhu}"
-                                   Text="Ngày nhân viên đã có lịch sẽ được bỏ qua và báo lại. Bấm × trên thẻ tên để xoá khỏi lịch." />
-
-                        <ui:Button Content="Thêm vào lịch" HorizontalAlignment="Stretch" Style="{StaticResource NutChinh}"
-                                   Command="{Binding ThemVaoLichCommand}" />
                     </StackPanel>
-                </ScrollViewer>
-            </Border>
-        </Grid>
 
-        <!-- Chú thích màu -->
-        <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,10,0,0">
-            <Border Width="12" Height="12" CornerRadius="3" Background="{StaticResource MauLeTanNen}" Margin="0,0,6,0" />
-            <TextBlock Text="Lễ tân" Style="{StaticResource ChuPhu}" FontSize="13" Margin="0,0,16,0" />
-            <Border Width="12" Height="12" CornerRadius="3" Background="{StaticResource MauGroomerNen}" Margin="0,0,6,0" />
-            <TextBlock Text="Groomer" Style="{StaticResource ChuPhu}" FontSize="13" Margin="0,0,16,0" />
-            <Border Width="12" Height="12" CornerRadius="3" Background="{StaticResource MauCanhBaoNen}" Margin="0,0,6,0" />
-            <TextBlock Text="Chưa đủ hoặc vượt định mức · nhân viên đã nghỉ việc" Style="{StaticResource ChuPhu}" FontSize="13" />
+                    <!-- Hàng "Ca còn thiếu" -->
+                    <Border Background="{StaticResource MauHangThieu}" CornerRadius="4" Margin="0,2,0,4"
+                            BorderBrush="{StaticResource MauVienBang}" BorderThickness="0,1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Width="180" Text="Ca còn thiếu" FontSize="13" FontWeight="SemiBold" Padding="10,0"
+                                       VerticalAlignment="Center" Foreground="{StaticResource MauCanhBaoChu}" />
+                            <ItemsControl ItemsSource="{Binding CacCotThieu}" Focusable="False">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="{Binding ChieuRongCot}" MinHeight="26" Padding="0,3">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DaQua}" Value="True">
+                                                            <Setter Property="Background" Value="#F3EDE3" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <ItemsControl ItemsSource="{Binding CacChip}" Focusable="False">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Style="{StaticResource ChipCa}"
+                                                                Command="{Binding ChonCommand}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Các hàng nhân viên, chia nhóm theo vị trí thường làm -->
+                    <ItemsControl ItemsSource="{Binding CacHang}" Focusable="False">
+                        <ItemsControl.Resources>
+                            <DataTemplate DataType="{x:Type vm:TieuDeNhomLichViewModel}">
+                                <TextBlock Text="{Binding Ten}" FontSize="12" FontWeight="SemiBold" Margin="10,12,0,4"
+                                           Foreground="{StaticResource MauChuPhu}" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:HangNhanVienViewModel}">
+                                <Border BorderBrush="{StaticResource MauVienBang}" BorderThickness="0,0,0,1">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource NutTenNhanVien}"
+                                                Command="{Binding ChonCaHangCommand}"
+                                                VerticalAlignment="Center" />
+                                        <ItemsControl ItemsSource="{Binding CacO}" Focusable="False">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{StaticResource OLich}"
+                                                            Command="{Binding ChonCommand}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.Resources>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- ================= Thanh phân công (khi có ô được chọn) ================= -->
+        <Border Grid.Row="4" Margin="0,12,0,0" Padding="14,10" CornerRadius="8"
+                Background="{StaticResource MauThanhChon}"
+                Visibility="{Binding CoChon, Converter={StaticResource BoolToVis}}">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="{Binding TieuDeChon}" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource MauChuThanhChon}" />
+                    <TextBlock Text="{Binding PhuDeChon}" FontSize="12" Opacity="0.75"
+                               Foreground="{StaticResource MauChuThanhChon}" />
+                </StackPanel>
+
+                <ui:Button DockPanel.Dock="Right" Content="Bỏ chọn" Margin="8,0,0,0" Height="36"
+                           Appearance="Transparent"
+                           Foreground="{StaticResource MauChuThanhChon}"
+                           Command="{Binding BoChonCommand}" />
+                <ui:Button DockPanel.Dock="Right" Content="Gỡ ca" Margin="8,0,0,0" Height="36"
+                           BorderBrush="#E8A39B" Foreground="#F6C9C2" Background="Transparent"
+                           MouseOverBackground="#33E8A39B" MouseOverBorderBrush="#E8A39B"
+                           Command="{Binding GoCaCommand}" />
+                <ui:Button DockPanel.Dock="Right" Content="{Binding NhanPhanCong}" Margin="8,0,0,0"
+                           Style="{StaticResource NutChinh}"
+                           Command="{Binding PhanCongCommand}" />
+                <ComboBox DockPanel.Dock="Right" Width="190" Margin="8,0,0,0" VerticalAlignment="Center"
+                          ItemsSource="{Binding CacViTriChon}"
+                          SelectedItem="{Binding ViTriDangChon, Mode=TwoWay}"
+                          DisplayMemberPath="HienThi"
+                          AutomationProperties.Name="Vị trí" />
+                <ComboBox DockPanel.Dock="Right" Width="230" Margin="8,0,0,0" VerticalAlignment="Center"
+                          ItemsSource="{Binding CacCaChon}"
+                          SelectedItem="{Binding CaDangChon, Mode=TwoWay}"
+                          DisplayMemberPath="HienThi"
+                          AutomationProperties.Name="Ca" />
+            </DockPanel>
+        </Border>
+
+        <!-- Chú thích và gợi ý thao tác -->
+        <StackPanel Grid.Row="5" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="14" Height="14" CornerRadius="3" VerticalAlignment="Center"
+                        Background="{StaticResource MauLeTanNen}" BorderBrush="{StaticResource MauLeTanVien}"
+                        BorderThickness="3,0,0,0" />
+                <TextBlock Text="Lễ tân" Margin="6,0,18,0" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{StaticResource MauChuPhu}" />
+                <Border Width="14" Height="14" CornerRadius="3" VerticalAlignment="Center"
+                        Background="{StaticResource MauGroomerNen}" BorderBrush="{StaticResource MauGroomerVien}"
+                        BorderThickness="3,0,0,0" />
+                <TextBlock Text="Groomer" Margin="6,0,18,0" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{StaticResource MauChuPhu}" />
+                <Rectangle Width="14" Height="14" RadiusX="3" RadiusY="3" VerticalAlignment="Center"
+                           Fill="#FFF7EE" Stroke="{StaticResource MauNhan}" StrokeThickness="1" StrokeDashArray="3 2" />
+                <TextBlock Text="Ô gợi ý (người rảnh cho ca thiếu)" Margin="6,0,0,0" FontSize="12"
+                           VerticalAlignment="Center" Foreground="{StaticResource MauChuPhu}" />
+            </StackPanel>
+            <TextBlock Text="{Binding HuongDan}" Style="{StaticResource ChuPhu}" Margin="0,6,0,0" />
         </StackPanel>
     </Grid>
 </UserControl>

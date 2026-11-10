@@ -15,6 +15,8 @@
                  FontFamily="Segoe UI">
 
     <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
         <!-- Ghép ViewModel với View của màn hình -->
         <DataTemplate DataType="{x:Type vm:TrangChuViewModel}">
             <v:TrangChuView />
@@ -103,7 +105,7 @@
 
         <Grid Grid.Row="1" Margin="24,8,24,24">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="240" />
+                <ColumnDefinition Width="{Binding ChieuRongMenu}" />
                 <ColumnDefinition Width="24" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -116,14 +118,39 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Margin="12,0,12,16">
-                    <TextBlock Text="{Binding HoTen}" FontSize="18" FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis"
-                               Foreground="{StaticResource MauChu}" />
-                    <TextBlock FontSize="14" Margin="0,2,0,0" Foreground="{StaticResource MauChuPhu}">
-                        <Run Text="{Binding VaiTro, Mode=OneWay}" /><Run Text=" · " /><Hyperlink Style="{StaticResource LienKet}" Command="{Binding DoiMatKhauCommand}">Đổi mật khẩu</Hyperlink>
-                    </TextBlock>
-                </StackPanel>
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <StackPanel Margin="12,0,44,0"
+                                Visibility="{Binding MenuMoRong, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding HoTen}" FontSize="18" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource MauChu}" />
+                        <TextBlock FontSize="14" Margin="0,2,0,0" Foreground="{StaticResource MauChuPhu}">
+                            <Run Text="{Binding VaiTro, Mode=OneWay}" /><Run Text=" · " /><Hyperlink Style="{StaticResource LienKet}" Command="{Binding DoiMatKhauCommand}">Đổi mật khẩu</Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <ui:Button Width="36" Height="36" Padding="0"
+                               VerticalAlignment="Top"
+                               Appearance="Transparent"
+                               Foreground="{StaticResource MauChuPhu}"
+                               MouseOverBackground="{StaticResource MauChon}"
+                               PressedBackground="{StaticResource MauChon}"
+                               Icon="{ui:SymbolIcon PanelLeft24}"
+                               ToolTip="Thu gọn / mở rộng menu"
+                               AutomationProperties.Name="Thu gọn hoặc mở rộng menu"
+                               Command="{Binding DoiTrangThaiMenuCommand}">
+                        <ui:Button.Style>
+                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Setter Property="HorizontalAlignment" Value="Right" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding MenuThuGon}" Value="True">
+                                        <Setter Property="HorizontalAlignment" Value="Center" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:Button.Style>
+                    </ui:Button>
+                </Grid>
 
                 <ListBox Grid.Row="1"
                          Background="Transparent" BorderThickness="0" Padding="0"
@@ -133,13 +160,49 @@
                          ItemContainerStyle="{StaticResource MucMenuStyle}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding TieuDe}" />
+                            <Grid>
+                                <!-- Mục thường: icon + tên; thu gọn thì chỉ icon, tên hiện ở ToolTip -->
+                                <Grid x:Name="Dong" ToolTip="{Binding TieuDe}"
+                                      ToolTipService.IsEnabled="{Binding DataContext.MenuThuGon, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:SymbolIcon x:Name="BieuTuong" Grid.Column="0" Symbol="{Binding Icon}" FontSize="20"
+                                                   Margin="0,0,12,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="Chu" Grid.Column="1" Text="{Binding TieuDe}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Grid>
+
+                                <!-- Nhãn nhóm: thu gọn thì thành đường kẻ -->
+                                <StackPanel x:Name="Nhom" Visibility="Collapsed">
+                                    <TextBlock x:Name="NhanNhom" Text="{Binding TieuDe}" />
+                                    <Border x:Name="DuongKe" Height="1" Margin="0,8,0,0" Visibility="Collapsed"
+                                            Background="{StaticResource MauVien}" />
+                                </StackPanel>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding LaTieuDe}" Value="True">
+                                    <Setter TargetName="Dong" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="Nhom" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DataContext.MenuThuGon, RelativeSource={RelativeSource AncestorType=ListBox}}" Value="True">
+                                    <Setter TargetName="Chu" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="BieuTuong" Property="Margin" Value="0" />
+                                    <Setter TargetName="Dong" Property="HorizontalAlignment" Value="Center" />
+                                    <Setter TargetName="NhanNhom" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="DuongKe" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <ui:Button Grid.Row="2" Content="Đăng xuất" Height="40"
+                <ui:Button Grid.Row="2" Height="40" Padding="0"
                            HorizontalAlignment="Stretch"
+                           ToolTip="Đăng xuất"
+                           ToolTipService.IsEnabled="{Binding MenuThuGon}"
+                           AutomationProperties.Name="Đăng xuất"
                            Background="{StaticResource MauNutPhu}"
                            BorderBrush="{StaticResource MauVien}"
                            Foreground="{StaticResource MauChu}"
@@ -147,7 +210,13 @@
                            MouseOverBorderBrush="{StaticResource MauVien}"
                            PressedBackground="{StaticResource MauChon}"
                            PressedForeground="{StaticResource MauChu}"
-                           Command="{Binding DangXuatCommand}" />
+                           Command="{Binding DangXuatCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ui:SymbolIcon Symbol="SignOut24" FontSize="20" VerticalAlignment="Center" />
+                        <TextBlock Text="Đăng xuất" Margin="8,0,0,0" VerticalAlignment="Center"
+                                   Visibility="{Binding MenuMoRong, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </ui:Button>
             </Grid>
 
             <!-- Vùng nội dung: View của màn hình hiện tại -->
