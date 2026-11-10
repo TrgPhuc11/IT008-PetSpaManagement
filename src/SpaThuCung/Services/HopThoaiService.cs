@@ -1,4 +1,6 @@
 using System.Windows;
+using SpaThuCung.ViewModels;
+using SpaThuCung.Views;
 
 namespace SpaThuCung.Services;
 
@@ -11,6 +13,20 @@ public class HopThoaiService : IHopThoaiService
             ? MessageBox.Show(chu, noiDung, tieuDe, MessageBoxButton.YesNo, MessageBoxImage.Question)
             : MessageBox.Show(noiDung, tieuDe, MessageBoxButton.YesNo, MessageBoxImage.Question);
         return kq == MessageBoxResult.Yes;
+    }
+
+    public bool? MoHopThoai(object viewModel)
+    {
+        Window cuaSo = viewModel switch
+        {
+            XungDotDinhMucViewModel vm => new XungDotDinhMucWindow(vm),
+            LapLichTuanViewModel vm => new LapLichTuanWindow(vm),
+            _ => throw new ArgumentException("Chưa có hộp thoại cho ViewModel này.", nameof(viewModel)),
+        };
+
+        var chu = Application.Current?.MainWindow;
+        if (chu is not null && chu.IsLoaded) cuaSo.Owner = chu;
+        return cuaSo.ShowDialog();
     }
 
     public string? ChonThuMuc(string tieuDe, string? thuMucBanDau)

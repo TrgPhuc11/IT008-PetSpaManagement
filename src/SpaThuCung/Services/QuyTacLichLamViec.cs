@@ -7,6 +7,10 @@ namespace SpaThuCung.Services;
 public static class QuyTacLichLamViec
 {
     private static readonly string[] TenThu = { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
+    private static readonly string[] TenThuDayDu = { "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ nhật" };
+
+    /// <summary>Số ngày tối đa của một lần xem lịch.</summary>
+    public const int SoNgayToiDa = 62;
 
     public static DateOnly HomNay => DateOnly.FromDateTime(DateTime.Today);
 
@@ -17,6 +21,9 @@ public static class QuyTacLichLamViec
     public static int ViTriTrongTuan(DateOnly ngay) => ((int)ngay.DayOfWeek + 6) % 7;
 
     public static string Thu(DateOnly ngay) => TenThu[ViTriTrongTuan(ngay)];
+
+    /// <summary>Ví dụ "Thứ Năm".</summary>
+    public static string ThuDayDu(DateOnly ngay) => TenThuDayDu[ViTriTrongTuan(ngay)];
 
     public static string NgayNgan(DateOnly ngay) => ngay.ToString("dd/MM", CultureInfo.InvariantCulture);
 

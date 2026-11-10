@@ -14,17 +14,30 @@ public interface INhanVienService
 
     // ---------- Lịch làm việc (UC05, FR13, BR02) ----------
 
-    /// <summary>Lịch của tuần chứa ngày đã cho, kèm danh sách ca và nhân viên đang làm việc để xếp. Chỉ Quản lý.</summary>
-    Task<KetQua<LichTuanDto>> LayLichTuanAsync(DateOnly ngayTrongTuan);
+    /// <summary>
+    /// Lịch từ ngày tu đến ngày den (tối đa 62 ngày): ca, dòng lịch và nhân viên Đang làm việc
+    /// kèm vị trí thường làm. Chỉ Quản lý.
+    /// </summary>
+    Task<KetQua<LichKhoangDto>> LayLichKhoangAsync(DateOnly tu, DateOnly den);
 
     /// <summary>
-    /// Xếp một nhân viên vào cùng một ca, một vị trí ở nhiều ngày. Ngày nhân viên đã có lịch thì bỏ qua (không lưu),
-    /// các ngày còn lại vẫn lưu. Vượt số người cấu hình của ca chỉ cảnh báo. Không xếp ngày đã qua. Chỉ Quản lý.
+    /// Kiểm tra (chưa lưu) việc xếp một nhân viên vào một ca, một vị trí ở nhiều ngày. Định mức Lễ tân/Groomer của ca
+    /// là cứng: ô đã đủ người được trả về trong VuongDinhMuc kèm người đang giữ ca. Không xếp ngày đã qua. Chỉ Quản lý.
     /// </summary>
-    Task<KetQua<KetQuaXepLich>> XepLichAsync(int maNv, int maCa, string viTri, IReadOnlyCollection<DateOnly> cacNgay);
+    Task<KetQua<KetQuaKiemTraPhanCong>> KiemTraPhanCongAsync(int maNv, int maCa, string viTri, IReadOnlyCollection<DateOnly> cacNgay);
 
-    /// <summary>Xoá một dòng lịch (không xoá được lịch của ngày đã qua). Chỉ Quản lý.</summary>
-    Task<KetQua> XoaLichAsync(int maLich);
+    /// <summary>
+    /// Áp dụng một lô thay đổi lịch trong MỘT giao dịch (tất cả hoặc không gì cả). Kiểm tra lại ngày đã qua, nhân viên
+    /// Đang làm việc, ca đang sử dụng, giá trị trước của từng dòng, UNIQUE và định mức của ca. Trả về lô thay đổi ngược
+    /// để Hoàn tác. Chỉ Quản lý.
+    /// </summary>
+    Task<KetQua<KetQuaApDungLich>> ApDungThayDoiLichAsync(IReadOnlyList<ThayDoiLich> cacThayDoi);
+
+    /// <summary>
+    /// Lập kế hoạch (chưa lưu) chép lịch của tuần chứa ngayTrongTuanNguon sang soTuan tuần tiếp theo cho các nhân viên đã chọn.
+    /// Chỉ điền ô trống, bỏ qua ô đủ người, ngày đã qua, ca đã ngừng. Chỉ Quản lý.
+    /// </summary>
+    Task<KetQua<KetQuaXemTruocLap>> XemTruocLapLichTuanAsync(DateOnly ngayTrongTuanNguon, int soTuan, IReadOnlyCollection<int> cacMaNv);
 
     /// <summary>Groomer có lịch đúng ngày, đúng ca, vị trí Groomer (BR10). Mọi nhân viên đã đăng nhập dùng được.</summary>
     Task<KetQua<List<NhanVienChonDto>>> LayGroomerTrongCaAsync(DateOnly ngay, int maCa);

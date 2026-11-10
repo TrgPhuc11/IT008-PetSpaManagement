@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using System.Windows;
 using SpaThuCung.Services;
+using Wpf.Ui.Controls;
 
 namespace SpaThuCung.ViewModels;
 
@@ -21,15 +23,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // Một ListBox duy nhất: "Quản lý" là nhãn nhóm không chọn được, chỉ có khi là Quản lý.
         var ds = new List<MucMenu>
         {
-            new("Trang chủ", LoaiMuc.TrangChu),
-            new("Dịch vụ & bảng giá", LoaiMuc.DichVu),
+            new("Trang chủ", LoaiMuc.TrangChu, SymbolRegular.Home24),
+            new("Dịch vụ & bảng giá", LoaiMuc.DichVu, SymbolRegular.Tag24),
         };
         if (_phien.LaQuanLy)
         {
             ds.Add(new MucMenu("Quản lý", LoaiMuc.TieuDeNhom));
-            ds.Add(new MucMenu("Quản lý nhân viên", LoaiMuc.NhanVien));
-            ds.Add(new MucMenu("Lịch làm việc", LoaiMuc.LichLamViec));
-            ds.Add(new MucMenu("Cấu hình hệ thống", LoaiMuc.CauHinh));
+            ds.Add(new MucMenu("Quản lý nhân viên", LoaiMuc.NhanVien, SymbolRegular.People24));
+            ds.Add(new MucMenu("Lịch làm việc", LoaiMuc.LichLamViec, SymbolRegular.CalendarLtr24));
+            ds.Add(new MucMenu("Cấu hình hệ thống", LoaiMuc.CauHinh, SymbolRegular.Settings24));
         }
         DanhSachMenu = ds;
 
@@ -44,6 +46,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public string HoTen => _phien.NhanVienHienTai?.HoTen ?? string.Empty;
 
     public string VaiTro => _phien.NhanVienHienTai?.VaiTro ?? string.Empty;
+
+    /// <summary>Menu trái đang mở rộng (232px) hay thu gọn chỉ còn icon (52px). Chỉ trong phiên.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MenuThuGon))]
+    [NotifyPropertyChangedFor(nameof(ChieuRongMenu))]
+    private bool _menuMoRong = true;
+
+    public bool MenuThuGon => !MenuMoRong;
+
+    public GridLength ChieuRongMenu => new(MenuMoRong ? 232 : 52);
+
+    [RelayCommand]
+    private void DoiTrangThaiMenu() => MenuMoRong = !MenuMoRong;
 
     [ObservableProperty]
     private MucMenu? _mucDangChon;

@@ -1,3 +1,5 @@
+using Wpf.Ui.Controls;
+
 namespace SpaThuCung.ViewModels;
 
 public enum LoaiMuc
@@ -13,7 +15,7 @@ public enum LoaiMuc
 }
 
 /// <summary>Một dòng trong menu trái.</summary>
-public sealed record MucMenu(string TieuDe, LoaiMuc Loai)
+public sealed record MucMenu(string TieuDe, LoaiMuc Loai, SymbolRegular Icon = SymbolRegular.Empty)
 {
     public bool LaTieuDe => Loai == LoaiMuc.TieuDeNhom;
 }
