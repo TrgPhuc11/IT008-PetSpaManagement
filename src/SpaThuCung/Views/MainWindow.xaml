@@ -33,6 +33,12 @@
         <DataTemplate DataType="{x:Type vm:CauHinhViewModel}">
             <v:CauHinhView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:KhachHangViewModel}">
+            <v:KhachHangView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ThuCungViewModel}">
+            <v:ThuCungView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ThongKeViewModel}">
             <v:ThongKeView />
         </DataTemplate>
