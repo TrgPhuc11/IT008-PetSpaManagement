@@ -166,20 +166,13 @@ public class DichVuService : IDichVuService
         }
     }
 
-    /// <summary>
-    /// Mã các dịch vụ đã có trong phiếu (bảng ChiTietPhieu); maDv khác null thì chỉ xét dịch vụ đó.
-    /// Bảng ChiTietPhieu chưa được tạo (chưa làm chức năng Lập phiếu) thì coi như chưa có phiếu nào.
-    /// Khi đã có entity ChiTietPhieu trong SpaDbContext, thay bằng truy vấn LINQ.
-    /// </summary>
-    private static async Task<List<int>> LayMaDvDaCoPhieuAsync(SpaDbContext db, int? maDv) =>
-        await db.Database.SqlQuery<int>($"""
-            IF OBJECT_ID(N'dbo.ChiTietPhieu', N'U') IS NULL
-                SELECT CAST(NULL AS INT) AS Value WHERE 1 = 0;
-            ELSE
-                EXEC sp_executesql
-                    N'SELECT DISTINCT ma_dv AS Value FROM dbo.ChiTietPhieu WHERE @ma IS NULL OR ma_dv = @ma',
-                    N'@ma INT', @ma = {maDv};
-            """).ToListAsync();
+    /// <summary>Mã các dịch vụ đã có trong phiếu (bảng ChiTietPhieu); maDv khác null thì chỉ xét dịch vụ đó.</summary>
+    private static Task<List<int>> LayMaDvDaCoPhieuAsync(SpaDbContext db, int? maDv) =>
+        db.ChiTietPhieu.AsNoTracking()
+            .Where(x => maDv == null || x.MaDv == maDv)
+            .Select(x => x.MaDv)
+            .Distinct()
+            .ToListAsync();
 
     public async Task<KetQua<List<GiaTraCuu>>> TraGiaAsync(string loai, decimal canNang)
     {

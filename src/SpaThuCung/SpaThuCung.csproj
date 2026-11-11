@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SpaThuCung</RootNamespace>
     <AssemblyName>SpaThuCung</AssemblyName>
+    <!-- LiveCharts2 kéo theo SkiaSharp.Views.WPF/OpenTK chỉ đóng gói cho .NET Framework nhưng chạy được trên WPF .NET -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +20,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <!-- Biểu đồ doanh thu (Thống kê doanh thu) -->
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +36,7 @@
     <EmbeddedResource Include="..\..\Database\02_TaoBang_DichVu_BangGia.sql" LogicalName="SpaThuCung.Sql.02_TaoBang_DichVu_BangGia" />
     <EmbeddedResource Include="..\..\Database\03_TaoBang_CauHinh_CaLamViec.sql" LogicalName="SpaThuCung.Sql.03_TaoBang_CauHinh_CaLamViec" />
     <EmbeddedResource Include="..\..\Database\04_TaoBang_LichLamViec.sql" LogicalName="SpaThuCung.Sql.04_TaoBang_LichLamViec" />
+    <EmbeddedResource Include="..\..\Database\05_TaoBang_PhieuDichVu.sql" LogicalName="SpaThuCung.Sql.05_TaoBang_PhieuDichVu" />
   </ItemGroup>
 
 </Project>
