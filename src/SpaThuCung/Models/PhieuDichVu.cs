@@ -26,5 +26,6 @@ public class PhieuDichVu
     public DateTime NgayTao { get; set; }
 
     public NhanVien? Groomer { get; set; }
+    public ThuCung? ThuCung { get; set; }
     public List<ChiTietPhieu> ChiTiet { get; set; } = new();
 }

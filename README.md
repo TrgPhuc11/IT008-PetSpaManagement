@@ -5,6 +5,8 @@
 ## Màn hình đã có
 - **Đăng nhập**.
 - **Trang chủ** (giữ chỗ, các chức năng khác sẽ bổ sung sau).
+- **Khách hàng** (mọi nhân viên): tìm theo tên hoặc SĐT, thêm, sửa; SĐT không trùng (nhập SĐT đã có thì mở hồ sơ cũ); hiện số lần không đến và cờ cảnh báo theo ngưỡng trong Cấu hình; xem thú cưng của khách. Không có xoá.
+- **Thú cưng** (mọi nhân viên): tìm, lọc theo khách, loài, chưa tiêm phòng; thêm thú cưng cho khách, sửa tên, loài, cân nặng, ghi chú và xác nhận tiêm phòng. Không đổi chủ, không xoá.
 - **Dịch vụ & bảng giá** (mọi nhân viên xem và tra giá theo loài, cân nặng; chỉ Quản lý thêm, sửa, ngừng/mở lại dịch vụ và chỉnh bảng giá; mỗi lần chỉ sửa một dịch vụ, bấm Chỉnh sửa trên thẻ dịch vụ). Mỗi dòng bảng giá gồm loài, khoảng cân nặng, giá và thời lượng (phút); các khoảng cùng loài không được chồng lấn, khoảng tính từ trên "Từ" đến hết "Đến". Dịch vụ chưa có phiếu dịch vụ nào thì xoá được; đã có phiếu thì chỉ chuyển Ngừng cung cấp.
 - **Quản lý nhân viên** (chỉ vai trò Quản lý): xem/tìm, thêm, sửa, đổi trạng thái Đang làm việc / Đã nghỉ việc, đặt lại mật khẩu. Không có chức năng xoá.
 - **Thống kê doanh thu** (chỉ Quản lý): chọn khoảng ngày (theo ngày hẹn của phiếu), xem theo ngày hoặc tháng; biểu đồ doanh thu và số phiếu mỗi kỳ, doanh thu theo dịch vụ hoặc theo Groomer, số phiếu theo trạng thái. Doanh thu chỉ tính phiếu "Đã thanh toán".

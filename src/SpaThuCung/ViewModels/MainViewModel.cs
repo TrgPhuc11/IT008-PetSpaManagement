@@ -24,6 +24,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var ds = new List<MucMenu>
         {
             new("Trang chủ", LoaiMuc.TrangChu, SymbolRegular.Home24),
+            new("Khách hàng", LoaiMuc.KhachHang, SymbolRegular.PersonBoard24),
+            new("Thú cưng", LoaiMuc.ThuCung, SymbolRegular.AnimalDog24),
             new("Dịch vụ & bảng giá", LoaiMuc.DichVu, SymbolRegular.Tag24),
         };
         if (_phien.LaQuanLy)
@@ -79,6 +81,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         object? vm = null;
         if (muc.Loai == LoaiMuc.TrangChu)
             vm = _sp.GetRequiredService<TrangChuViewModel>();
+        else if (muc.Loai == LoaiMuc.KhachHang)
+            vm = _sp.GetRequiredService<KhachHangViewModel>();
+        else if (muc.Loai == LoaiMuc.ThuCung)
+            vm = _sp.GetRequiredService<ThuCungViewModel>();
         else if (muc.Loai == LoaiMuc.DichVu)
             vm = _sp.GetRequiredService<DichVuViewModel>();
         else if (muc.Loai == LoaiMuc.NhanVien && _phien.LaQuanLy)

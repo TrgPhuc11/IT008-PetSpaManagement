@@ -15,6 +15,8 @@ public class SpaDbContext : DbContext
     public DbSet<CauHinh> CauHinh => Set<CauHinh>();
     public DbSet<CaLamViec> CaLamViec => Set<CaLamViec>();
     public DbSet<LichLamViec> LichLamViec => Set<LichLamViec>();
+    public DbSet<KhachHang> KhachHang => Set<KhachHang>();
+    public DbSet<ThuCung> ThuCung => Set<ThuCung>();
     public DbSet<PhieuDichVu> PhieuDichVu => Set<PhieuDichVu>();
     public DbSet<ChiTietPhieu> ChiTietPhieu => Set<ChiTietPhieu>();
 
@@ -97,7 +99,32 @@ public class SpaDbContext : DbContext
             e.HasOne(x => x.CaLamViec).WithMany().HasForeignKey(x => x.MaCa);
         });
 
-        // KhachHang, ThuCung, Long đã có bảng (script 05) nhưng chưa có entity: phiếu chỉ giữ mã.
+        modelBuilder.Entity<KhachHang>(e =>
+        {
+            e.ToTable("KhachHang");
+            e.HasKey(x => x.MaKh);
+            e.Property(x => x.MaKh).HasColumnName("ma_kh").ValueGeneratedOnAdd();
+            e.Property(x => x.HoTen).HasColumnName("ho_ten").HasMaxLength(100).IsRequired();
+            e.Property(x => x.Sdt).HasColumnName("sdt").HasMaxLength(15).IsUnicode(false).IsRequired();
+            e.Property(x => x.GhiChu).HasColumnName("ghi_chu").HasMaxLength(255);
+            e.HasIndex(x => x.Sdt).IsUnique();
+        });
+
+        modelBuilder.Entity<ThuCung>(e =>
+        {
+            e.ToTable("ThuCung");
+            e.HasKey(x => x.MaThuCung);
+            e.Property(x => x.MaThuCung).HasColumnName("ma_thu_cung").ValueGeneratedOnAdd();
+            e.Property(x => x.MaKh).HasColumnName("ma_kh");
+            e.Property(x => x.Ten).HasColumnName("ten").HasMaxLength(50).IsRequired();
+            e.Property(x => x.Loai).HasColumnName("loai").HasMaxLength(10).IsRequired();
+            e.Property(x => x.CanNang).HasColumnName("can_nang").HasPrecision(5, 2);
+            e.Property(x => x.DaTiemPhong).HasColumnName("da_tiem_phong");
+            e.Property(x => x.GhiChu).HasColumnName("ghi_chu").HasMaxLength(255);
+            e.HasOne(x => x.KhachHang).WithMany(x => x.ThuCung).HasForeignKey(x => x.MaKh);
+        });
+
+        // Long đã có bảng (script 05) nhưng chưa có entity: phiếu chỉ giữ mã lồng.
         modelBuilder.Entity<PhieuDichVu>(e =>
         {
             e.ToTable("PhieuDichVu");
@@ -121,6 +148,7 @@ public class SpaDbContext : DbContext
             e.Property(x => x.GioTra).HasColumnName("gio_tra").HasColumnType("datetime");
             e.Property(x => x.NgayTao).HasColumnName("ngay_tao").HasColumnType("datetime").ValueGeneratedOnAdd();
             e.HasOne(x => x.Groomer).WithMany().HasForeignKey(x => x.MaGroomer);
+            e.HasOne(x => x.ThuCung).WithMany().HasForeignKey(x => x.MaThuCung);
         });
 
         modelBuilder.Entity<ChiTietPhieu>(e =>
