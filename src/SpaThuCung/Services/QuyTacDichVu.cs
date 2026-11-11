@@ -15,7 +15,7 @@ public static class QuyTacDichVu
     /// <summary>Giới hạn của cột DECIMAL(12,0).</summary>
     public const decimal GiaToiDa = 999_999_999_999m;
 
-    private static readonly CultureInfo Vn = CultureInfo.GetCultureInfo("vi-VN");
+    public static readonly CultureInfo Vn = CultureInfo.GetCultureInfo("vi-VN");
 
     public static string? KiemTraTen(string ten)
     {

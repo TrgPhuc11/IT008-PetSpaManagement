@@ -15,6 +15,8 @@ public class SpaDbContext : DbContext
     public DbSet<CauHinh> CauHinh => Set<CauHinh>();
     public DbSet<CaLamViec> CaLamViec => Set<CaLamViec>();
     public DbSet<LichLamViec> LichLamViec => Set<LichLamViec>();
+    public DbSet<PhieuDichVu> PhieuDichVu => Set<PhieuDichVu>();
+    public DbSet<ChiTietPhieu> ChiTietPhieu => Set<ChiTietPhieu>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -93,6 +95,45 @@ public class SpaDbContext : DbContext
             e.HasIndex(x => new { x.MaNv, x.Ngay }).IsUnique();
             e.HasOne(x => x.NhanVien).WithMany().HasForeignKey(x => x.MaNv);
             e.HasOne(x => x.CaLamViec).WithMany().HasForeignKey(x => x.MaCa);
+        });
+
+        // KhachHang, ThuCung, Long đã có bảng (script 05) nhưng chưa có entity: phiếu chỉ giữ mã.
+        modelBuilder.Entity<PhieuDichVu>(e =>
+        {
+            e.ToTable("PhieuDichVu");
+            e.HasKey(x => x.MaPhieu);
+            e.Property(x => x.MaPhieu).HasColumnName("ma_phieu").ValueGeneratedOnAdd();
+            e.Property(x => x.MaThuCung).HasColumnName("ma_thu_cung");
+            e.Property(x => x.MaGroomer).HasColumnName("ma_groomer");
+            e.Property(x => x.MaNvLap).HasColumnName("ma_nv_lap");
+            e.Property(x => x.MaLong).HasColumnName("ma_long");
+            e.Property(x => x.NguonTiepNhan).HasColumnName("nguon_tiep_nhan").HasMaxLength(20).IsRequired();
+            e.Property(x => x.NgayGioHen).HasColumnName("ngay_gio_hen").HasColumnType("datetime");
+            e.Property(x => x.TrangThai).HasColumnName("trang_thai").HasMaxLength(30).IsRequired();
+            e.Property(x => x.CanNangLucLap).HasColumnName("can_nang_luc_lap").HasPrecision(5, 2);
+            e.Property(x => x.TongTien).HasColumnName("tong_tien").HasPrecision(12, 0);
+            e.Property(x => x.TongThoiGian).HasColumnName("tong_thoi_gian");
+            e.Property(x => x.TtThanhToan).HasColumnName("tt_thanh_toan").HasMaxLength(20).IsRequired();
+            e.Property(x => x.PhuongThuc).HasColumnName("phuong_thuc").HasMaxLength(20);
+            e.Property(x => x.LyDoHuy).HasColumnName("ly_do_huy").HasMaxLength(255);
+            e.Property(x => x.GioNhan).HasColumnName("gio_nhan").HasColumnType("datetime");
+            e.Property(x => x.GioBatDau).HasColumnName("gio_bat_dau").HasColumnType("datetime");
+            e.Property(x => x.GioTra).HasColumnName("gio_tra").HasColumnType("datetime");
+            e.Property(x => x.NgayTao).HasColumnName("ngay_tao").HasColumnType("datetime").ValueGeneratedOnAdd();
+            e.HasOne(x => x.Groomer).WithMany().HasForeignKey(x => x.MaGroomer);
+        });
+
+        modelBuilder.Entity<ChiTietPhieu>(e =>
+        {
+            e.ToTable("ChiTietPhieu");
+            e.HasKey(x => new { x.MaPhieu, x.MaDv });
+            e.Property(x => x.MaPhieu).HasColumnName("ma_phieu");
+            e.Property(x => x.MaDv).HasColumnName("ma_dv");
+            e.Property(x => x.DonGia).HasColumnName("don_gia").HasPrecision(12, 0);
+            e.Property(x => x.ThoiLuong).HasColumnName("thoi_luong");
+            e.Property(x => x.GhiChu).HasColumnName("ghi_chu").HasMaxLength(255);
+            e.HasOne(x => x.PhieuDichVu).WithMany(x => x.ChiTiet).HasForeignKey(x => x.MaPhieu);
+            e.HasOne(x => x.DichVu).WithMany().HasForeignKey(x => x.MaDv);
         });
     }
 }
