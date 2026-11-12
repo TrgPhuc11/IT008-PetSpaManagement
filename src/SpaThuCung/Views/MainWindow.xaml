@@ -21,6 +21,9 @@
         <DataTemplate DataType="{x:Type vm:TrangChuViewModel}">
             <v:TrangChuView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LapPhieuViewModel}">
+            <v:LapPhieuView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:NhanVienViewModel}">
             <v:NhanVienView />
         </DataTemplate>

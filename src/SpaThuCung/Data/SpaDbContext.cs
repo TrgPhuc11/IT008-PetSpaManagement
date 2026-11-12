@@ -19,6 +19,9 @@ public class SpaDbContext : DbContext
     public DbSet<ThuCung> ThuCung => Set<ThuCung>();
     public DbSet<PhieuDichVu> PhieuDichVu => Set<PhieuDichVu>();
     public DbSet<ChiTietPhieu> ChiTietPhieu => Set<ChiTietPhieu>();
+    public DbSet<Long> Long => Set<Long>();
+    public DbSet<NhatKyPhieu> NhatKyPhieu => Set<NhatKyPhieu>();
+    public DbSet<HinhAnhPhieu> HinhAnhPhieu => Set<HinhAnhPhieu>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,7 +127,17 @@ public class SpaDbContext : DbContext
             e.HasOne(x => x.KhachHang).WithMany(x => x.ThuCung).HasForeignKey(x => x.MaKh);
         });
 
-        // Long đã có bảng (script 05) nhưng chưa có entity: phiếu chỉ giữ mã lồng.
+        modelBuilder.Entity<Long>(e =>
+        {
+            e.ToTable("Long");
+            e.HasKey(x => x.MaLong);
+            e.Property(x => x.MaLong).HasColumnName("ma_long").ValueGeneratedOnAdd();
+            e.Property(x => x.TenLong).HasColumnName("ten_long").HasMaxLength(20).IsRequired();
+            e.Property(x => x.LoaiLong).HasColumnName("loai_long").HasMaxLength(20).IsRequired();
+            e.Property(x => x.GhiChu).HasColumnName("ghi_chu").HasMaxLength(255);
+            e.HasIndex(x => x.TenLong).IsUnique();
+        });
+
         modelBuilder.Entity<PhieuDichVu>(e =>
         {
             e.ToTable("PhieuDichVu");
@@ -148,7 +161,9 @@ public class SpaDbContext : DbContext
             e.Property(x => x.GioTra).HasColumnName("gio_tra").HasColumnType("datetime");
             e.Property(x => x.NgayTao).HasColumnName("ngay_tao").HasColumnType("datetime").ValueGeneratedOnAdd();
             e.HasOne(x => x.Groomer).WithMany().HasForeignKey(x => x.MaGroomer);
+            e.HasOne(x => x.NhanVienLap).WithMany().HasForeignKey(x => x.MaNvLap);
             e.HasOne(x => x.ThuCung).WithMany().HasForeignKey(x => x.MaThuCung);
+            e.HasOne(x => x.Long).WithMany().HasForeignKey(x => x.MaLong);
         });
 
         modelBuilder.Entity<ChiTietPhieu>(e =>
@@ -162,6 +177,34 @@ public class SpaDbContext : DbContext
             e.Property(x => x.GhiChu).HasColumnName("ghi_chu").HasMaxLength(255);
             e.HasOne(x => x.PhieuDichVu).WithMany(x => x.ChiTiet).HasForeignKey(x => x.MaPhieu);
             e.HasOne(x => x.DichVu).WithMany().HasForeignKey(x => x.MaDv);
+        });
+
+        modelBuilder.Entity<NhatKyPhieu>(e =>
+        {
+            e.ToTable("NhatKyPhieu");
+            e.HasKey(x => x.MaLog);
+            e.Property(x => x.MaLog).HasColumnName("ma_log").ValueGeneratedOnAdd();
+            e.Property(x => x.MaPhieu).HasColumnName("ma_phieu");
+            e.Property(x => x.MaNv).HasColumnName("ma_nv");
+            e.Property(x => x.ThoiDiem).HasColumnName("thoi_diem").HasColumnType("datetime");
+            e.Property(x => x.HanhDong).HasColumnName("hanh_dong").HasMaxLength(30).IsRequired();
+            e.Property(x => x.NoiDung).HasColumnName("noi_dung").HasMaxLength(500).IsRequired();
+            e.HasOne(x => x.PhieuDichVu).WithMany(x => x.NhatKy).HasForeignKey(x => x.MaPhieu);
+            e.HasOne(x => x.NhanVien).WithMany().HasForeignKey(x => x.MaNv);
+        });
+
+        modelBuilder.Entity<HinhAnhPhieu>(e =>
+        {
+            e.ToTable("HinhAnhPhieu");
+            e.HasKey(x => x.MaAnh);
+            e.Property(x => x.MaAnh).HasColumnName("ma_anh").ValueGeneratedOnAdd();
+            e.Property(x => x.MaPhieu).HasColumnName("ma_phieu");
+            e.Property(x => x.LoaiAnh).HasColumnName("loai_anh").HasMaxLength(20).IsRequired();
+            e.Property(x => x.DuongDan).HasColumnName("duong_dan").HasMaxLength(260).IsRequired();
+            e.Property(x => x.GhiChu).HasColumnName("ghi_chu").HasMaxLength(255);
+            e.Property(x => x.ThoiDiem).HasColumnName("thoi_diem").HasColumnType("datetime");
+            e.HasIndex(x => x.DuongDan).IsUnique();
+            e.HasOne(x => x.PhieuDichVu).WithMany(x => x.HinhAnh).HasForeignKey(x => x.MaPhieu);
         });
     }
 }

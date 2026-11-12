@@ -5,6 +5,7 @@
 ## Màn hình đã có
 - **Đăng nhập**.
 - **Trang chủ** (giữ chỗ, các chức năng khác sẽ bổ sung sau).
+- **Lập phiếu** (mọi nhân viên, UC10): tìm khách theo tên/SĐT hoặc thêm khách mới ngay trên form; chọn hoặc thêm thú cưng (chỉ thú cưng đã xác nhận tiêm phòng và chưa có phiếu đang hoạt động); khách có số lần Không đến từ ngưỡng cảnh báo thì hiện lưu ý (không chặn). Chọn dịch vụ: giá và thời lượng tra theo loài và cân nặng lúc lập; không có khoảng cân phù hợp hoặc trường hợp đặc biệt thì nhập tay kèm lý do. Đặt lịch: chọn ngày và mốc giờ 15 phút trong ca, Groomer có lịch đúng ngày đúng ca (có thể để Chưa phân công). Walk-in: nhận ngay, chọn lồng Walk-in trống và Groomer của ca hiện tại, phiếu ở "Đã nhận thú cưng". Vượt thời lượng ca của Groomer hoặc xong quá giờ được lố thì chỉ hỏi lại.
 - **Khách hàng** (mọi nhân viên): tìm theo tên hoặc SĐT, thêm, sửa; SĐT không trùng (nhập SĐT đã có thì mở hồ sơ cũ); hiện số lần không đến và cờ cảnh báo theo ngưỡng trong Cấu hình; xem thú cưng của khách. Không có xoá.
 - **Thú cưng** (mọi nhân viên): tìm, lọc theo khách, loài, chưa tiêm phòng; thêm thú cưng cho khách, sửa tên, loài, cân nặng, ghi chú và xác nhận tiêm phòng. Không đổi chủ, không xoá.
 - **Dịch vụ & bảng giá** (mọi nhân viên xem và tra giá theo loài, cân nặng; chỉ Quản lý thêm, sửa, ngừng/mở lại dịch vụ và chỉnh bảng giá; mỗi lần chỉ sửa một dịch vụ, bấm Chỉnh sửa trên thẻ dịch vụ). Mỗi dòng bảng giá gồm loài, khoảng cân nặng, giá và thời lượng (phút); các khoảng cùng loài không được chồng lấn, khoảng tính từ trên "Từ" đến hết "Đến". Dịch vụ chưa có phiếu dịch vụ nào thì xoá được; đã có phiếu thì chỉ chuyển Ngừng cung cấp.
@@ -32,6 +33,7 @@ Sửa chuỗi kết nối trong `src/SpaThuCung/appsettings.json` (khoá `Connec
 - `03_TaoBang_CauHinh_CaLamViec.sql`: bảng `CauHinh`, `CaLamViec` và giá trị mặc định.
 - `04_TaoBang_LichLamViec.sql`: bảng `LichLamViec`.
 - `05_TaoBang_PhieuDichVu.sql`: bảng `KhachHang`, `ThuCung`, `Long`, `PhieuDichVu`, `ChiTietPhieu` (chưa có dữ liệu).
+- `06_TaoBang_NhatKy_HinhAnh_Long.sql`: bảng `NhatKyPhieu`, `HinhAnhPhieu` và 10 lồng mặc định (L01–L06 Đặt lịch, W01–W04 Walk-in; chỉ thêm khi bảng `Long` còn trống).
 
 Cũng có thể mở các file này trong SSMS và chạy tay theo đúng thứ tự.
 
