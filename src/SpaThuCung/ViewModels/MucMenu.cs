@@ -12,6 +12,7 @@ public enum LoaiMuc
     LichLamViec,
     CauHinh,
     ThongKe,
+    SaoLuu,
 
     /// <summary>Nhãn nhóm (không chọn được).</summary>
     TieuDeNhom,

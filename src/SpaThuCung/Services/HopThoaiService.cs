@@ -39,4 +39,30 @@ public class HopThoaiService : IHopThoaiService
         var ok = chu is not null ? hop.ShowDialog(chu) : hop.ShowDialog();
         return ok == true ? hop.FolderName : null;
     }
+
+    public string? ChonTep(string tieuDe, string boLoc, string? thuMucBanDau)
+    {
+        var hop = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = tieuDe,
+            Filter = boLoc,
+            Multiselect = false,
+            CheckFileExists = true,
+        };
+        if (!string.IsNullOrWhiteSpace(thuMucBanDau) && System.IO.Directory.Exists(thuMucBanDau))
+            hop.InitialDirectory = thuMucBanDau;
+
+        var chu = Application.Current?.MainWindow;
+        var ok = chu is not null ? hop.ShowDialog(chu) : hop.ShowDialog();
+        return ok == true ? hop.FileName : null;
+    }
+
+    public void ThongBao(string noiDung, string tieuDe)
+    {
+        var chu = Application.Current?.MainWindow;
+        if (chu is not null)
+            MessageBox.Show(chu, noiDung, tieuDe, MessageBoxButton.OK, MessageBoxImage.Information);
+        else
+            MessageBox.Show(noiDung, tieuDe, MessageBoxButton.OK, MessageBoxImage.Information);
+    }
 }

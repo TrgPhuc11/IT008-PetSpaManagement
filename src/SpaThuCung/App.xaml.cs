@@ -88,6 +88,7 @@ public partial class App : Application
         sc.AddTransient<ICauHinhService, CauHinhService>();
         sc.AddTransient<IThongKeService, ThongKeService>();
         sc.AddTransient<IKhachHangService, KhachHangService>();
+        sc.AddTransient<ISaoLuuService, SaoLuuService>();
 
         // Cửa sổ và ViewModel là Transient: mỗi lần về đăng nhập là form mới.
         sc.AddTransient<LoginViewModel>();
@@ -100,6 +101,7 @@ public partial class App : Application
         sc.AddTransient<ThongKeViewModel>();
         sc.AddTransient<KhachHangViewModel>();
         sc.AddTransient<ThuCungViewModel>();
+        sc.AddTransient<SaoLuuViewModel>();
         sc.AddTransient<DoiMatKhauViewModel>();
         sc.AddTransient<LoginWindow>();
         sc.AddTransient<MainWindow>();

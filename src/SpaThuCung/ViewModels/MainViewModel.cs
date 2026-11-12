@@ -35,6 +35,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             ds.Add(new MucMenu("Lịch làm việc", LoaiMuc.LichLamViec, SymbolRegular.CalendarLtr24));
             ds.Add(new MucMenu("Thống kê doanh thu", LoaiMuc.ThongKe, SymbolRegular.DataBarVertical24));
             ds.Add(new MucMenu("Cấu hình hệ thống", LoaiMuc.CauHinh, SymbolRegular.Settings24));
+            ds.Add(new MucMenu("Sao lưu & phục hồi", LoaiMuc.SaoLuu, SymbolRegular.Database24));
         }
         DanhSachMenu = ds;
 
@@ -95,6 +96,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             vm = _sp.GetRequiredService<CauHinhViewModel>();
         else if (muc.Loai == LoaiMuc.ThongKe && _phien.LaQuanLy)
             vm = _sp.GetRequiredService<ThongKeViewModel>();
+        else if (muc.Loai == LoaiMuc.SaoLuu && _phien.LaQuanLy)
+            vm = _sp.GetRequiredService<SaoLuuViewModel>();
 
         if (vm is null) return;
 
