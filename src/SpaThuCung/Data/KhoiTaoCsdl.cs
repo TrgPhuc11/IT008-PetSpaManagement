@@ -21,8 +21,16 @@ public class KhoiTaoCsdl
         _connectionString = connectionString;
     }
 
+    /// <summary>Chuỗi kết nối trong appsettings.json (Sao lưu và phục hồi cần để kết nối vào master).</summary>
+    public string ConnectionString => _connectionString;
+
     /// <summary>Đã tạo/kiểm tra CSDL thành công trong lần chạy này chưa.</summary>
     public bool DaXong { get; private set; }
+
+    /// <summary>
+    /// Đánh dấu cần chạy lại các script ở lần đăng nhập sau, ví dụ sau khi phục hồi một bản sao lưu cũ còn thiếu bảng mới.
+    /// </summary>
+    public void DatLai() => DaXong = false;
 
     public async Task ChayAsync()
     {

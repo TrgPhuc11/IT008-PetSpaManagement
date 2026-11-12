@@ -14,4 +14,10 @@ public interface IHopThoaiService
 
     /// <summary>Hộp thoại chọn thư mục; null nếu người dùng huỷ.</summary>
     string? ChonThuMuc(string tieuDe, string? thuMucBanDau);
+
+    /// <summary>Hộp thoại mở một tệp (ví dụ boLoc "Tệp sao lưu (*.bak)|*.bak"); null nếu người dùng huỷ.</summary>
+    string? ChonTep(string tieuDe, string boLoc, string? thuMucBanDau);
+
+    /// <summary>Thông báo có nút OK, chờ người dùng đóng.</summary>
+    void ThongBao(string noiDung, string tieuDe);
 }
