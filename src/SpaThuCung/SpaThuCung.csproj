@@ -37,6 +37,7 @@
     <EmbeddedResource Include="..\..\Database\03_TaoBang_CauHinh_CaLamViec.sql" LogicalName="SpaThuCung.Sql.03_TaoBang_CauHinh_CaLamViec" />
     <EmbeddedResource Include="..\..\Database\04_TaoBang_LichLamViec.sql" LogicalName="SpaThuCung.Sql.04_TaoBang_LichLamViec" />
     <EmbeddedResource Include="..\..\Database\05_TaoBang_PhieuDichVu.sql" LogicalName="SpaThuCung.Sql.05_TaoBang_PhieuDichVu" />
+    <EmbeddedResource Include="..\..\Database\06_TaoBang_NhatKy_HinhAnh_Long.sql" LogicalName="SpaThuCung.Sql.06_TaoBang_NhatKy_HinhAnh_Long" />
   </ItemGroup>
 
 </Project>

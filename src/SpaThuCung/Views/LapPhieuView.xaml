@@ -1,0 +1,497 @@
+<UserControl x:Class="SpaThuCung.Views.LapPhieuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <Style x:Key="NutChinh" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Appearance" Value="Primary" />
+            <Setter Property="Background" Value="{StaticResource MauNhan}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauNhan}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="MouseOverBackground" Value="{StaticResource MauNhanDam}" />
+            <Setter Property="MouseOverBorderBrush" Value="{StaticResource MauNhanDam}" />
+            <Setter Property="PressedBackground" Value="{StaticResource MauNhanDam}" />
+            <Setter Property="PressedForeground" Value="White" />
+        </Style>
+        <Style x:Key="NutPhu" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Background" Value="{StaticResource MauNutPhu}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauVien}" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+            <Setter Property="MouseOverBackground" Value="{StaticResource MauChon}" />
+            <Setter Property="MouseOverBorderBrush" Value="{StaticResource MauVien}" />
+            <Setter Property="PressedBackground" Value="{StaticResource MauChon}" />
+            <Setter Property="PressedForeground" Value="{StaticResource MauChu}" />
+        </Style>
+
+        <!-- Thẻ của từng bước -->
+        <Style x:Key="The" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource MauThe}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauVienBang}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style x:Key="TieuDeThe" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="NhanO" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,10,0,6" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+        </Style>
+        <Style x:Key="ChuPhu" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+        </Style>
+
+        <!-- Khung báo lỗi / cảnh báo nhỏ trong thẻ -->
+        <Style x:Key="KhungLoi" TargetType="Border">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="{StaticResource MauLoiNen}" />
+        </Style>
+        <Style x:Key="KhungCanhBao" TargetType="Border" BasedOn="{StaticResource KhungLoi}">
+            <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
+        </Style>
+        <Style x:Key="ChuLoi" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource MauLoiChu}" />
+        </Style>
+        <Style x:Key="ChuCanhBao" TargetType="TextBlock" BasedOn="{StaticResource ChuLoi}">
+            <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
+        </Style>
+
+        <!-- Khung nhập nhanh (thêm khách, thêm thú cưng) -->
+        <Style x:Key="KhungNhapNhanh" TargetType="Border">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{StaticResource MauNen}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauVienBang}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Lập phiếu dịch vụ" FontSize="24" FontWeight="SemiBold"
+                   Foreground="{StaticResource MauChu}" />
+        <TextBlock Grid.Row="1" Margin="0,4,0,16" FontSize="14" TextWrapping="Wrap"
+                   Foreground="{StaticResource MauChuPhu}"
+                   Text="Chọn khách, thú cưng và dịch vụ; giá, thời lượng tra theo loài và cân nặng. Đặt lịch chọn ngày giờ trong ca, Walk-in nhận ngay vào lồng Walk-in trống." />
+
+        <!-- Hộp thông báo: màu đổi theo LoaiThongBao (mặc định là lỗi) -->
+        <Border Grid.Row="2" Margin="0,0,0,12" Padding="12,8" CornerRadius="4"
+                Visibility="{Binding CoThongBao, Converter={StaticResource BoolToVis}}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{StaticResource MauLoiNen}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding LoaiThongBao}" Value="ThanhCong">
+                            <Setter Property="Background" Value="{StaticResource MauOkNen}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding LoaiThongBao}" Value="CanhBao">
+                            <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ThongBao}" FontSize="13" TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource MauLoiChu}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LoaiThongBao}" Value="ThanhCong">
+                                <Setter Property="Foreground" Value="{StaticResource MauOkChu}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding LoaiThongBao}" Value="CanhBao">
+                                <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Border>
+
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid Margin="0,0,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="360" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" MinWidth="420" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Cột trái: khách hàng, thú cưng -->
+                <StackPanel Grid.Column="0">
+
+                    <!-- 1. Khách hàng -->
+                    <Border Style="{StaticResource The}">
+                        <StackPanel>
+                            <TextBlock Text="1. Khách hàng" Style="{StaticResource TieuDeThe}" />
+                            <ui:TextBox PlaceholderText="Tìm theo tên hoặc SĐT"
+                                        Icon="{ui:SymbolIcon Search24}"
+                                        Text="{Binding TuKhoaKhach, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <Border Margin="0,8,0,0" BorderBrush="{StaticResource MauVienBang}" BorderThickness="1"
+                                    CornerRadius="4">
+                                <ListBox Height="150" ItemsSource="{Binding KetQuaKhach}"
+                                         SelectedItem="{Binding KhachTrongDanhSach, Mode=TwoWay}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         AutomationProperties.Name="Kết quả tìm khách">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel>
+                                                <Border DockPanel.Dock="Right" CornerRadius="10" Padding="8,1"
+                                                        Background="{StaticResource MauCanhBaoNen}"
+                                                        Visibility="{Binding CoCanhBao, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{Binding SoLanKhongDen, StringFormat='Không đến {0} lần'}"
+                                                               FontSize="11" Foreground="{StaticResource MauCanhBaoChu}" />
+                                                </Border>
+                                                <TextBlock Text="{Binding TenVaSdt}" TextTrimming="CharacterEllipsis"
+                                                           Foreground="{StaticResource MauChu}" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+
+                            <DockPanel Margin="0,10,0,0">
+                                <ui:Button DockPanel.Dock="Right" Content="Khách mới" Style="{StaticResource NutPhu}"
+                                           Icon="{ui:SymbolIcon PersonAdd24}"
+                                           Command="{Binding MoThemKhachCommand}" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Đang chọn" Style="{StaticResource ChuPhu}" FontSize="12" />
+                                    <TextBlock Text="{Binding ThongTinKhach}" FontSize="14" FontWeight="SemiBold"
+                                               TextWrapping="Wrap" Foreground="{StaticResource MauChu}" />
+                                </StackPanel>
+                            </DockPanel>
+
+                            <!-- BR05: khách bị gắn cờ, chỉ cảnh báo -->
+                            <Border Style="{StaticResource KhungCanhBao}"
+                                    Visibility="{Binding CoCanhBaoKhach, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding CanhBaoKhach}" Style="{StaticResource ChuCanhBao}" />
+                            </Border>
+
+                            <!-- Thêm khách nhanh -->
+                            <Border Style="{StaticResource KhungNhapNhanh}"
+                                    Visibility="{Binding DangThemKhach, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="Khách mới" FontWeight="SemiBold" Foreground="{StaticResource MauChu}" />
+                                    <TextBlock Text="Họ tên *" Style="{StaticResource NhanO}" />
+                                    <ui:TextBox MaxLength="100"
+                                                Text="{Binding KhachMoiHoTen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Số điện thoại *" Style="{StaticResource NhanO}" />
+                                    <ui:TextBox MaxLength="15"
+                                                Text="{Binding KhachMoiSdt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Border Style="{StaticResource KhungLoi}"
+                                            Visibility="{Binding CoLoiKhachMoi, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding LoiKhachMoi}" Style="{StaticResource ChuLoi}" />
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                        <ui:Button Content="Huỷ" MinWidth="70" Margin="0,0,8,0" Style="{StaticResource NutPhu}"
+                                                   Command="{Binding HuyThemKhachCommand}" />
+                                        <ui:Button Content="Lưu khách" MinWidth="90" Style="{StaticResource NutChinh}"
+                                                   Command="{Binding LuuKhachMoiCommand}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 2. Thú cưng -->
+                    <Border Style="{StaticResource The}">
+                        <StackPanel>
+                            <DockPanel>
+                                <ui:Button DockPanel.Dock="Right" Content="Thú cưng mới" Style="{StaticResource NutPhu}"
+                                           Icon="{ui:SymbolIcon Add24}"
+                                           Command="{Binding MoThemThuCungCommand}" />
+                                <TextBlock Text="2. Thú cưng" Style="{StaticResource TieuDeThe}" VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <TextBlock Text="Chọn khách để xem thú cưng." Margin="0,8,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ChuPhu}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CoKhach}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <ListBox Margin="0,8,0,0" MaxHeight="180" ItemsSource="{Binding CacThuCung}"
+                                     SelectedItem="{Binding ThuCungChon, Mode=TwoWay}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     Visibility="{Binding CoKhach, Converter={StaticResource BoolToVis}}"
+                                     AutomationProperties.Name="Thú cưng của khách">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" Text="Chưa tiêm phòng" FontSize="11"
+                                                       VerticalAlignment="Center" Foreground="{StaticResource MauLoiChu}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding DaTiemPhong}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock TextTrimming="CharacterEllipsis" Foreground="{StaticResource MauChu}">
+                                                <Run Text="{Binding Ten, Mode=OneWay}" FontWeight="SemiBold" />
+                                                <Run Text="{Binding Loai, Mode=OneWay, StringFormat=' · {0}'}" />
+                                                <Run Text="{Binding CanNangHienThi, Mode=OneWay, StringFormat=' · {0} kg'}" />
+                                            </TextBlock>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <StackPanel Visibility="{Binding CoThuCung, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Cân nặng lúc lập phiếu (kg) *" Style="{StaticResource NhanO}" />
+                                <ui:TextBox MaxLength="7" PlaceholderText="Ví dụ 4,5"
+                                            Text="{Binding CanNang, Mode=TwoWay}" />
+                                <TextBlock Text="Sửa nếu vừa cân lại: giá được tra lại khi rời ô, lưu phiếu thì cập nhật luôn hồ sơ thú cưng." Style="{StaticResource ChuPhu}"
+                                           FontSize="12" Margin="0,4,0,0" />
+                            </StackPanel>
+
+                            <Border Style="{StaticResource KhungLoi}"
+                                    Visibility="{Binding CoLoiThuCung, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding LoiThuCung}" Style="{StaticResource ChuLoi}" />
+                            </Border>
+
+                            <!-- Thêm thú cưng nhanh -->
+                            <Border Style="{StaticResource KhungNhapNhanh}"
+                                    Visibility="{Binding DangThemThuCung, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="Thú cưng mới" FontWeight="SemiBold" Foreground="{StaticResource MauChu}" />
+                                    <TextBlock Text="Tên *" Style="{StaticResource NhanO}" />
+                                    <ui:TextBox MaxLength="50"
+                                                Text="{Binding TcMoiTen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Loài *" Style="{StaticResource NhanO}" />
+                                            <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CacLoai}"
+                                                      SelectedItem="{Binding TcMoiLoai, Mode=TwoWay}"
+                                                      AutomationProperties.Name="Loài" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Cân nặng (kg) *" Style="{StaticResource NhanO}" />
+                                            <ui:TextBox MaxLength="7" PlaceholderText="4,5"
+                                                        Text="{Binding TcMoiCanNang, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <CheckBox Content="Đã tiêm phòng (nhân viên xác nhận)" Margin="0,12,0,0"
+                                              IsChecked="{Binding TcMoiDaTiemPhong, Mode=TwoWay}" />
+                                    <Border Style="{StaticResource KhungLoi}"
+                                            Visibility="{Binding CoLoiThuCungMoi, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding LoiThuCungMoi}" Style="{StaticResource ChuLoi}" />
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                        <ui:Button Content="Huỷ" MinWidth="70" Margin="0,0,8,0" Style="{StaticResource NutPhu}"
+                                                   Command="{Binding HuyThemThuCungCommand}" />
+                                        <ui:Button Content="Lưu thú cưng" MinWidth="100" Style="{StaticResource NutChinh}"
+                                                   Command="{Binding LuuThuCungMoiCommand}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Cột phải: dịch vụ, tiếp nhận -->
+                <StackPanel Grid.Column="2">
+
+                    <!-- 3. Dịch vụ -->
+                    <Border Style="{StaticResource The}">
+                        <StackPanel>
+                            <TextBlock Text="3. Dịch vụ" Style="{StaticResource TieuDeThe}" />
+                            <TextBlock Text="{Binding GhiChuDichVu}" Style="{StaticResource ChuPhu}" Margin="0,0,0,8" />
+
+                            <ItemsControl ItemsSource="{Binding CacDichVu}" IsTabStop="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource MauVienBang}" BorderThickness="0,1,0,0" Padding="0,8">
+                                            <StackPanel>
+                                                <DockPanel>
+                                                    <CheckBox DockPanel.Dock="Right" Content="Nhập tay" VerticalAlignment="Center"
+                                                              IsChecked="{Binding NhapTay, Mode=TwoWay}"
+                                                              IsEnabled="{Binding DuocBoNhapTay}"
+                                                              Visibility="{Binding Chon, Converter={StaticResource BoolToVis}}" />
+                                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding Chon, Mode=TwoWay}">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding TenDv}" FontWeight="SemiBold"
+                                                                       Foreground="{StaticResource MauChu}" />
+                                                            <TextBlock Text="{Binding MoTaGia}" FontSize="12">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding CoGia}" Value="True">
+                                                                                <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </CheckBox>
+                                                </DockPanel>
+
+                                                <!-- Ô nhập tay giá, thời lượng, lý do (BR08) -->
+                                                <Grid Margin="28,8,0,0"
+                                                      Visibility="{Binding HienONhapTay, Converter={StaticResource BoolToVis}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="130" />
+                                                        <ColumnDefinition Width="8" />
+                                                        <ColumnDefinition Width="90" />
+                                                        <ColumnDefinition Width="8" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ui:TextBox Grid.Column="0" PlaceholderText="Giá (đ)" MaxLength="16"
+                                                                Text="{Binding GiaNhap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <ui:TextBox Grid.Column="2" PlaceholderText="Phút" MaxLength="4"
+                                                                Text="{Binding ThoiLuongNhap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <ui:TextBox Grid.Column="4" PlaceholderText="Lý do nhập tay (bắt buộc)" MaxLength="255"
+                                                                Text="{Binding GhiChu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 4. Tiếp nhận -->
+                    <Border Style="{StaticResource The}">
+                        <StackPanel>
+                            <DockPanel>
+                                <ui:Button DockPanel.Dock="Right" Content="Làm mới" Style="{StaticResource NutPhu}"
+                                           Icon="{ui:SymbolIcon ArrowClockwise24}"
+                                           ToolTip="Tải lại ca, Groomer và lồng trống"
+                                           Command="{Binding LamMoiTiepNhanCommand}" />
+                                <TextBlock Text="4. Tiếp nhận" Style="{StaticResource TieuDeThe}" VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <RadioButton Content="Đặt lịch" GroupName="NguonTiepNhan" Margin="0,0,24,0"
+                                             IsChecked="{Binding LaDatLich, Mode=TwoWay}" />
+                                <RadioButton Content="Walk-in (nhận ngay)" GroupName="NguonTiepNhan"
+                                             IsChecked="{Binding LaWalkIn, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <WrapPanel Orientation="Horizontal">
+                                <!-- Đặt lịch: ngày và mốc giờ trong ca -->
+                                <StackPanel Margin="0,0,16,0" Visibility="{Binding LaDatLich, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Ngày hẹn *" Style="{StaticResource NhanO}" />
+                                    <DatePicker Width="150" SelectedDate="{Binding NgayHen, Mode=TwoWay}"
+                                                AutomationProperties.Name="Ngày hẹn" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,16,0" Visibility="{Binding LaDatLich, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Giờ hẹn *" Style="{StaticResource NhanO}" />
+                                    <ComboBox Width="110" ItemsSource="{Binding CacMocGio}"
+                                              SelectedItem="{Binding GioHenChon, Mode=TwoWay}"
+                                              DisplayMemberPath="HienThi"
+                                              AutomationProperties.Name="Giờ hẹn" />
+                                </StackPanel>
+
+                                <!-- Walk-in: lồng Walk-in trống -->
+                                <StackPanel Margin="0,0,16,0" Visibility="{Binding LaWalkIn, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Lồng Walk-in *" Style="{StaticResource NhanO}" />
+                                    <ComboBox Width="130" ItemsSource="{Binding CacLongTrong}"
+                                              SelectedItem="{Binding LongChon, Mode=TwoWay}"
+                                              DisplayMemberPath="TenLong"
+                                              AutomationProperties.Name="Lồng Walk-in" />
+                                </StackPanel>
+
+                                <StackPanel>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource NhanO}">
+                                                <Setter Property="Text" Value="Groomer" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding LaWalkIn}" Value="True">
+                                                        <Setter Property="Text" Value="Groomer *" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <ComboBox Width="280" ItemsSource="{Binding CacGroomer}"
+                                              SelectedItem="{Binding GroomerChon, Mode=TwoWay}"
+                                              DisplayMemberPath="HienThi"
+                                              AutomationProperties.Name="Groomer" />
+                                </StackPanel>
+                            </WrapPanel>
+
+                            <TextBlock Text="{Binding ThongTinCa}" Style="{StaticResource ChuPhu}" Margin="0,10,0,0" />
+                            <TextBlock Text="{Binding ThongTinLong}" Style="{StaticResource ChuPhu}" Margin="0,2,0,0"
+                                       Visibility="{Binding LaWalkIn, Converter={StaticResource BoolToVis}}" />
+
+                            <Border Style="{StaticResource KhungLoi}"
+                                    Visibility="{Binding CoLoiCa, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding LoiCa}" Style="{StaticResource ChuLoi}" />
+                            </Border>
+
+                            <!-- BR11: cảnh báo, không chặn -->
+                            <Border Style="{StaticResource KhungCanhBao}"
+                                    Visibility="{Binding CoCanhBaoQuaTai, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding CanhBaoQuaTai}" Style="{StaticResource ChuCanhBao}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Thanh tổng và lưu -->
+        <Border Grid.Row="4" Margin="0,12,0,0" Padding="16,10" CornerRadius="8"
+                Background="{StaticResource MauThe}" BorderBrush="{StaticResource MauVienBang}" BorderThickness="1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Content="Làm lại" MinWidth="90" Margin="0,0,8,0" Style="{StaticResource NutPhu}"
+                               Command="{Binding LamLaiCommand}" />
+                    <ui:Button Content="Lập phiếu" MinWidth="120" Style="{StaticResource NutChinh}"
+                               Icon="{ui:SymbolIcon DocumentAdd24}"
+                               Command="{Binding LuuCommand}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Tổng tiền" Style="{StaticResource ChuPhu}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding TongTienHienThi, StringFormat='{}{0} đ'}" Margin="8,0,24,0" FontSize="18"
+                               FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{StaticResource MauNhan}" />
+                    <TextBlock Text="Thời lượng" Style="{StaticResource ChuPhu}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding TongThoiLuongHienThi}" Margin="8,0,24,0" FontSize="16"
+                               FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{StaticResource MauChu}" />
+                    <TextBlock Text="{Binding GioXongDuKien}" Style="{StaticResource ChuPhu}" VerticalAlignment="Center" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

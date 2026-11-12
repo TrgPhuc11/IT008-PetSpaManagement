@@ -5,6 +5,7 @@ namespace SpaThuCung.ViewModels;
 public enum LoaiMuc
 {
     TrangChu,
+    LapPhieu,
     KhachHang,
     ThuCung,
     DichVu,

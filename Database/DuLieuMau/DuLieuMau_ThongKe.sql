@@ -130,6 +130,12 @@ GO
    Xoá dữ liệu mẫu (bôi đen đoạn dưới rồi chạy):
 
 USE SpaThuCung;
+DELETE n FROM dbo.NhatKyPhieu n JOIN dbo.PhieuDichVu p ON p.ma_phieu = n.ma_phieu
+    JOIN dbo.ThuCung t ON t.ma_thu_cung = p.ma_thu_cung JOIN dbo.KhachHang k ON k.ma_kh = t.ma_kh
+    WHERE k.sdt LIKE '090000000_';
+DELETE h FROM dbo.HinhAnhPhieu h JOIN dbo.PhieuDichVu p ON p.ma_phieu = h.ma_phieu
+    JOIN dbo.ThuCung t ON t.ma_thu_cung = p.ma_thu_cung JOIN dbo.KhachHang k ON k.ma_kh = t.ma_kh
+    WHERE k.sdt LIKE '090000000_';
 DELETE c FROM dbo.ChiTietPhieu c JOIN dbo.PhieuDichVu p ON p.ma_phieu = c.ma_phieu
     JOIN dbo.ThuCung t ON t.ma_thu_cung = p.ma_thu_cung JOIN dbo.KhachHang k ON k.ma_kh = t.ma_kh
     WHERE k.sdt LIKE '090000000_';
