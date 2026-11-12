@@ -110,8 +110,8 @@ public class PhieuService : IPhieuService
             await using var gd = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
             // BR04, BR06: thú cưng có chủ, đã xác nhận tiêm phòng, không có phiếu đang hoạt động.
-            var tc = await db.ThuCung.AsNoTracking().Include(x => x.KhachHang)
-                .FirstOrDefaultAsync(x => x.MaThuCung == phieu.MaThuCung);
+            // Theo dõi thay đổi: cân nặng lúc lập là cân nặng thực tế nên cập nhật luôn vào hồ sơ thú cưng.
+            var tc = await db.ThuCung.FirstOrDefaultAsync(x => x.MaThuCung == phieu.MaThuCung);
             if (tc is null) return KetQua<KetQuaLapPhieu>.Loi("Không tìm thấy thú cưng, hãy tải lại.");
             if (!tc.DaTiemPhong)
                 return KetQua<KetQuaLapPhieu>.Loi($"{tc.Ten} chưa được xác nhận tiêm phòng nên chưa lập phiếu được.");
@@ -214,6 +214,9 @@ public class PhieuService : IPhieuService
             }
             p.NhatKy = nhatKy;
 
+            var canCu = tc.CanNang;
+            tc.CanNang = phieu.CanNang;
+
             db.PhieuDichVu.Add(p);
             await db.SaveChangesAsync();
             await gd.CommitAsync();
@@ -222,6 +225,8 @@ public class PhieuService : IPhieuService
                 ? $"Đã lập phiếu {QuyTacPhieu.MaHienThi(p.MaPhieu)} (Walk-in) cho {tc.Ten}, lồng {longGan!.TenLong}, Groomer {groomer!.HoTen}."
                 : $"Đã đặt lịch {QuyTacPhieu.MaHienThi(p.MaPhieu)} cho {tc.Ten} lúc {QuyTacPhieu.NgayGio(gioHen)}"
                   + (groomer is null ? ", chưa phân công Groomer." : $", Groomer {groomer.HoTen}.");
+            if (canCu != phieu.CanNang)
+                tb += $" Đã cập nhật cân nặng của {tc.Ten}: {QuyTacDichVu.KgHienThi(canCu)} → {QuyTacDichVu.KgHienThi(phieu.CanNang)} kg.";
             return KetQua<KetQuaLapPhieu>.Ok(new KetQuaLapPhieu(p.MaPhieu, p.TrangThai, gioHen, tongTien, tongPhut), tb);
         }
         catch (DbUpdateException)

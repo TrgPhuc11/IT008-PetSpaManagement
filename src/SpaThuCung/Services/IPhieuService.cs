@@ -21,6 +21,7 @@ public interface IPhieuService
     /// <summary>
     /// Lập phiếu trong một transaction (UC10). Đặt lịch: "Đã đặt lịch". Walk-in: "Đã nhận thú cưng", gán lồng Walk-in trống,
     /// ghi giờ nhận và nhật ký. Giá, thời lượng các dòng không nhập tay được tra lại từ bảng giá lúc lưu (BR08).
+    /// Cân nặng lúc lập là cân nặng thực tế nên được cập nhật vào hồ sơ thú cưng.
     /// Các cảnh báo quá tải (BR11) không chặn nên ViewModel hỏi trước khi gọi.
     /// </summary>
     Task<KetQua<KetQuaLapPhieu>> LapPhieuAsync(PhieuMoi phieu);

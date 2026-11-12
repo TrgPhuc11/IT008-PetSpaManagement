@@ -272,7 +272,7 @@
                                 <TextBlock Text="Cân nặng lúc lập phiếu (kg) *" Style="{StaticResource NhanO}" />
                                 <ui:TextBox MaxLength="7" PlaceholderText="Ví dụ 4,5"
                                             Text="{Binding CanNang, Mode=TwoWay}" />
-                                <TextBlock Text="Sửa nếu vừa cân lại; giá được tra lại khi rời ô." Style="{StaticResource ChuPhu}"
+                                <TextBlock Text="Sửa nếu vừa cân lại: giá được tra lại khi rời ô, lưu phiếu thì cập nhật luôn hồ sơ thú cưng." Style="{StaticResource ChuPhu}"
                                            FontSize="12" Margin="0,4,0,0" />
                             </StackPanel>
 
