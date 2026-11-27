@@ -24,6 +24,9 @@
         <DataTemplate DataType="{x:Type vm:LapPhieuViewModel}">
             <v:LapPhieuView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TheoDoiViewModel}">
+            <v:TheoDoiView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:NhanVienViewModel}">
             <v:NhanVienView />
         </DataTemplate>

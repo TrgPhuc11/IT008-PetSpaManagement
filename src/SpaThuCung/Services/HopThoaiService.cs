@@ -21,6 +21,8 @@ public class HopThoaiService : IHopThoaiService
         {
             XungDotDinhMucViewModel vm => new XungDotDinhMucWindow(vm),
             LapLichTuanViewModel vm => new LapLichTuanWindow(vm),
+            NhanThuCungViewModel vm => new NhanThuCungWindow(vm),
+            DoiLongViewModel vm => new DoiLongWindow(vm),
             _ => throw new ArgumentException("Chưa có hộp thoại cho ViewModel này.", nameof(viewModel)),
         };
 

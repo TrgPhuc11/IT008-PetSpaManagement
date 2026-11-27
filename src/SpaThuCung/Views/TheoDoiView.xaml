@@ -1,0 +1,286 @@
+<UserControl x:Class="SpaThuCung.Views.TheoDoiView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <Style x:Key="NutChinh" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Appearance" Value="Primary" />
+            <Setter Property="Background" Value="{StaticResource MauNhan}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauNhan}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="MouseOverBackground" Value="{StaticResource MauNhanDam}" />
+            <Setter Property="MouseOverBorderBrush" Value="{StaticResource MauNhanDam}" />
+            <Setter Property="PressedBackground" Value="{StaticResource MauNhanDam}" />
+            <Setter Property="PressedForeground" Value="White" />
+        </Style>
+        <Style x:Key="NutPhu" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="{StaticResource MauNutPhu}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauVien}" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+            <Setter Property="MouseOverBackground" Value="{StaticResource MauChon}" />
+            <Setter Property="MouseOverBorderBrush" Value="{StaticResource MauVien}" />
+            <Setter Property="PressedBackground" Value="{StaticResource MauChon}" />
+            <Setter Property="PressedForeground" Value="{StaticResource MauChu}" />
+        </Style>
+        <Style x:Key="ChuODuLieu" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="8,0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+        </Style>
+        <Style x:Key="ChuPhu" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource MauChuPhu}" />
+        </Style>
+        <Style x:Key="TieuDeThe" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource MauChu}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="The" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource MauThe}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MauVienBang}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12" />
+        </Style>
+        <Style x:Key="Bang" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource MauVienBang}" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="CanUserResizeRows" Value="False" />
+            <Setter Property="CanUserReorderColumns" Value="False" />
+            <Setter Property="RowHeight" Value="40" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <DataTemplate x:Key="DongLong">
+            <Border Margin="0,0,0,6" Padding="10,6" CornerRadius="6" BorderThickness="1"
+                    BorderBrush="{StaticResource MauVienBang}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="{StaticResource MauOkNen}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Trong}" Value="False">
+                                <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <TextBlock Text="{Binding TenLong}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource MauChu}" />
+                    <TextBlock Text="{Binding TinhTrang}" FontSize="12" TextTrimming="CharacterEllipsis"
+                               Foreground="{StaticResource MauChuPhu}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Theo dõi thú cưng và lịch hẹn" FontSize="24" FontWeight="SemiBold"
+                   Foreground="{StaticResource MauChu}" />
+        <TextBlock Grid.Row="1" Margin="0,4,0,12" Style="{StaticResource ChuPhu}"
+                   Text="Chọn một phiếu để nhận thú cưng, bắt đầu hoặc hoàn tất chăm sóc, đổi lồng. Khách đến đúng ngày hẹn mới nhận được." />
+
+        <Border Grid.Row="2" Margin="0,0,0,12" Padding="12,8" CornerRadius="4"
+                Visibility="{Binding CoThongBao, Converter={StaticResource BoolToVis}}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{StaticResource MauLoiNen}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding LoaiThongBao}" Value="ThanhCong">
+                            <Setter Property="Background" Value="{StaticResource MauOkNen}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding LoaiThongBao}" Value="CanhBao">
+                            <Setter Property="Background" Value="{StaticResource MauCanhBaoNen}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ThongBao}" FontSize="13" TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource MauLoiChu}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LoaiThongBao}" Value="ThanhCong">
+                                <Setter Property="Foreground" Value="{StaticResource MauOkChu}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding LoaiThongBao}" Value="CanhBao">
+                                <Setter Property="Foreground" Value="{StaticResource MauCanhBaoChu}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Border>
+
+        <!-- Thao tác trên phiếu đang chọn -->
+        <Border Grid.Row="3" Style="{StaticResource The}" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource MauChu}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="Chưa chọn phiếu" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CoPhieuChon}" Value="True">
+                                        <Setter Property="Text">
+                                            <Setter.Value>
+                                                <MultiBinding StringFormat="{}{0} · {1}">
+                                                    <Binding Path="PhieuChon.MaHienThi" />
+                                                    <Binding Path="PhieuChon.ThuCungHienThi" />
+                                                </MultiBinding>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource ChuPhu}" Text="{Binding PhieuChon.TrangThaiHienThi}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <ui:Button Content="Nhận thú cưng" Style="{StaticResource NutChinh}" Command="{Binding NhanThuCungCommand}" />
+                    <ui:Button Content="Bắt đầu chăm sóc" Style="{StaticResource NutChinh}" Command="{Binding BatDauCommand}" />
+                    <ui:Button Content="Hoàn tất chăm sóc" Style="{StaticResource NutChinh}" Command="{Binding HoanTatCommand}" />
+                    <ui:Button Content="Đổi lồng" Style="{StaticResource NutPhu}" Command="{Binding DoiLongCommand}" />
+                    <ui:Button Content="Tải lại" Style="{StaticResource NutPhu}" Margin="0" Command="{Binding TaiLaiCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="4" Background="Transparent">
+            <!-- Tab 1: thú cưng đang ở tiệm + lồng -->
+            <TabItem Header="Đang ở tiệm">
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="300" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource The}" Padding="0">
+                        <Grid>
+                            <DataGrid Style="{StaticResource Bang}" ItemsSource="{Binding DangOTiem}"
+                                      SelectedItem="{Binding PhieuChon, Mode=TwoWay}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Mã" Width="80" Binding="{Binding MaHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                    <DataGridTextColumn Header="Thú cưng" Width="*" MinWidth="130" Binding="{Binding ThuCungHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                    <DataGridTextColumn Header="Trạng thái" Width="170" Binding="{Binding TrangThaiHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                    <DataGridTextColumn Header="Lồng" Width="70" Binding="{Binding LongHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                    <DataGridTextColumn Header="Groomer" Width="140" Binding="{Binding GroomerHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                    <DataGridTextColumn Header="Giờ hẹn" Width="130" Binding="{Binding GioHenHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                    <DataGridTextColumn Header="Xong dự kiến" Width="110" Binding="{Binding GioXongHienThi, Mode=OneWay}"
+                                                        ElementStyle="{StaticResource ChuODuLieu}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock Text="Hiện không có thú cưng nào đang ở tiệm."
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ChuPhu}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DangOTiem.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource The}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource TieuDeThe}" Text="{Binding TomTatLongDatLich}" />
+                                <ItemsControl ItemsSource="{Binding LongDatLich}" ItemTemplate="{StaticResource DongLong}" Focusable="False" />
+                                <TextBlock Style="{StaticResource TieuDeThe}" Margin="0,12,0,8" Text="{Binding TomTatLongWalkIn}" />
+                                <ItemsControl ItemsSource="{Binding LongWalkIn}" ItemTemplate="{StaticResource DongLong}" Focusable="False" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 2: lịch hẹn theo ngày -->
+            <TabItem Header="Lịch hẹn theo ngày">
+                <Grid Margin="0,12,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:Button Content="◀" Style="{StaticResource NutPhu}" Width="40" Command="{Binding NgayTruocCommand}" />
+                        <DatePicker SelectedDate="{Binding NgayLich, Mode=TwoWay}" Width="150" Height="36" Margin="0,0,8,0" />
+                        <ui:Button Content="▶" Style="{StaticResource NutPhu}" Width="40" Command="{Binding NgaySauCommand}" />
+                        <ui:Button Content="Hôm nay" Style="{StaticResource NutPhu}" Command="{Binding HomNayCommand}" />
+                        <ComboBox Width="220" Height="36" ItemsSource="{Binding CacTrangThai}"
+                                  SelectedItem="{Binding TrangThaiLoc, Mode=TwoWay}" DisplayMemberPath="HienThi" />
+                        <TextBlock Text="{Binding TieuDeLich}" Style="{StaticResource ChuPhu}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Style="{StaticResource The}" Padding="0">
+                        <DataGrid Style="{StaticResource Bang}" ItemsSource="{Binding LichHen}"
+                                  SelectedItem="{Binding PhieuChon, Mode=TwoWay}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Giờ hẹn" Width="130" Binding="{Binding GioHenHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Mã" Width="80" Binding="{Binding MaHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Thú cưng" Width="*" MinWidth="130" Binding="{Binding ThuCungHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Khách" Width="*" MinWidth="130" Binding="{Binding KhachHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Nguồn" Width="90" Binding="{Binding NguonTiepNhan, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Trạng thái" Width="170" Binding="{Binding TrangThaiHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Groomer" Width="130" Binding="{Binding GroomerHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                                <DataGridTextColumn Header="Tổng tiền" Width="110" Binding="{Binding TongTienHienThi, Mode=OneWay}"
+                                                    ElementStyle="{StaticResource ChuODuLieu}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

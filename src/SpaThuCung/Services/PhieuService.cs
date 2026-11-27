@@ -258,7 +258,7 @@ public class PhieuService : IPhieuService
         + "Quản lý cần xếp lịch làm việc trước.";
 
     /// <summary>Ca chứa giờ hẹn và Groomer của ca; trả (null, lỗi) nếu giờ hẹn ngoài mọi ca đang sử dụng.</summary>
-    private static async Task<(CaCuaGioHenDto? KetQua, string? Loi)> DocCaVaGroomerAsync(SpaDbContext db, DateTime gioHen)
+    internal static async Task<(CaCuaGioHenDto? KetQua, string? Loi)> DocCaVaGroomerAsync(SpaDbContext db, DateTime gioHen)
     {
         var cacCa = (await db.CaLamViec.AsNoTracking().Where(x => x.DangSuDung).ToListAsync())
             .Select(x => new CaLamViecDto(x.MaCa, x.TenCa, x.GioBatDau, x.GioKetThuc, x.PhutVuotChoPhep,
@@ -298,7 +298,7 @@ public class PhieuService : IPhieuService
     }
 
     /// <summary>Lồng của một loại không thuộc phiếu nào đang giữ thú cưng (BR13).</summary>
-    private static async Task<List<LongTrongDto>> DocLongTrongAsync(SpaDbContext db, string loaiLong)
+    internal static async Task<List<LongTrongDto>> DocLongTrongAsync(SpaDbContext db, string loaiLong)
     {
         var giuLong = QuyTacPhieu.TrangThaiGiuLong;
         return await db.Long.AsNoTracking()
