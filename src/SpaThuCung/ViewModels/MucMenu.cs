@@ -6,6 +6,7 @@ public enum LoaiMuc
 {
     TrangChu,
     LapPhieu,
+    TheoDoi,
     KhachHang,
     ThuCung,
     DichVu,

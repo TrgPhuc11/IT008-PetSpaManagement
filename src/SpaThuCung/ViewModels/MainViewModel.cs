@@ -25,6 +25,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             new("Trang chủ", LoaiMuc.TrangChu, SymbolRegular.Home24),
             new("Lập phiếu", LoaiMuc.LapPhieu, SymbolRegular.DocumentAdd24),
+            new("Theo dõi & lịch hẹn", LoaiMuc.TheoDoi, SymbolRegular.ClipboardTaskListLtr24),
             new("Khách hàng", LoaiMuc.KhachHang, SymbolRegular.PersonBoard24),
             new("Thú cưng", LoaiMuc.ThuCung, SymbolRegular.AnimalDog24),
             new("Dịch vụ & bảng giá", LoaiMuc.DichVu, SymbolRegular.Tag24),
@@ -85,6 +86,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             vm = _sp.GetRequiredService<TrangChuViewModel>();
         else if (muc.Loai == LoaiMuc.LapPhieu)
             vm = _sp.GetRequiredService<LapPhieuViewModel>();
+        else if (muc.Loai == LoaiMuc.TheoDoi)
+            vm = _sp.GetRequiredService<TheoDoiViewModel>();
         else if (muc.Loai == LoaiMuc.KhachHang)
             vm = _sp.GetRequiredService<KhachHangViewModel>();
         else if (muc.Loai == LoaiMuc.ThuCung)
